@@ -1,4 +1,4 @@
-*engspchk.txt*	English Spelling Checker   (v57)	May 25, 2004
+*engspchk.txt*	English Spelling Checker   (v58)	Oct 01, 2004
 
 Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	(elide NOSPAM from my email before using)
@@ -8,9 +8,9 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 
 	1. Contents...................................: |engspchk-contents|
 	2. English Spelling Checker Manual............: |engspchk-manual|
-	   Getting Started Under Unix.................: |engspchk-start|
-	   Getting Started Under Win32................: |engspchk-win32|
-	   Variables Controlling Usage................: |engspchk-var|
+	   2.1 Getting Started Under Unix.............: |engspchk-start|
+	   2.2 Getting Started Under Win32............: |engspchk-win32|
+	   2.3 Variables Controlling Usage............: |engspchk-var|
 	     g:spchkaltright..........................: |spchkaltright|
 	     g:spchkacronym...........................: |spchkacronym|
 	     g:cvimsyn................................: |cvimsyn|
@@ -23,22 +23,25 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	     g:spchkpunc..............................: |spchkpunc|
 	     g:spchksilent............................: |spchksilent|
 	     g:spchkhlgroups..........................: |spchkhlgroups|
-	   Using Engspchk.............................: |engspchk-use|
-	   Click-N-Fix Maps...........................: |engspchk-clicknfix|
-	   Maps For Alternatives Window Only..........: |engspchk-alt|
-	   Usage......................................: |engspchk-usage|
-	   Filetype Enabled Engspchk..................: |engspchk-mail|
-	   Checking Spelling In Comments..............: |engspchk-comment|
+	   2.4 Using Engspchk.........................: |engspchk-use|
+	   2.5 Click-N-Fix Maps.......................: |engspchk-clicknfix|
+	   2.6 Maps For Alternatives Window Only......: |engspchk-alt|
+	   2.7 Commands...............................: |engspchk-cmd|
+	   2.8 Usage..................................: |engspchk-usage|
+	   2.9 Filetype Enabled Engspchk..............: |engspchk-mail|
+	   2.10 Checking Spelling In Comments.........: |engspchk-comment|
+	   2.11 Engspchk Dictionaries.................: |engspchk-dict|
 	3. More Languages.............................: |engspchk-language|
-	   Creating A New Version of Engspchk.........: |engspchk-newversion|
-	   Earlier Language Support...................: |engspchk-earlylang|
+	   3.1 Creating A New Version of Engspchk.....: |engspchk-newversion|
+	   3.2 Current Language Support...............: |engspchk-curlang|
+	   3.3 Earlier Language Support...............: |engspchk-earlylang|
 	4. History....................................: |engspchk-history|
 
 
 ==============================================================================
 2. English Spelling Checker Manual			*engspchk-manual*
 
-GETTING STARTED UNDER UNIX				*engspchk-start*
+2.1 GETTING STARTED UNDER UNIX				*engspchk-start*
 
 	1. Put <engspchk.tar.bz2> into your .vim directory
 	2. bunzip2 engspchk.tar.bz2
@@ -84,7 +87,7 @@ GETTING STARTED UNDER UNIX				*engspchk-start*
 	                   = "uk"   United Kingdom
 			   = "can"  Canadian
 
-GETTING STARTED UNDER WINDOWS		*engspchk-win32*
+2.2 GETTING STARTED UNDER WINDOWS		*engspchk-win32*
 
 	1. Download <engspchk.tar.bz2>
 	2. Rename the downloaded file as needed to
@@ -146,7 +149,7 @@ GETTING STARTED UNDER WINDOWS		*engspchk-win32*
 			    = "can"  Canadian
 
 
-VARIABLES CONTROLLING USAGE		*engspchk-var* *engspchk-variable*
+2.3 VARIABLES CONTROLLING USAGE		*engspchk-var* *engspchk-variable*
 					*engspchk-variables* *engspchk-options*
 
 								*spchkaltright*
@@ -167,6 +170,9 @@ VARIABLES CONTROLLING USAGE		*engspchk-var* *engspchk-variable*
 	    <engspchk.dict> and <engspchk.usr>.  If it doesn't exist, then
 	    engspchk will consider using a system environment variable called
 	    CVIMSYN (see below); and then search along the runtimepath.
+	    Frequently the runtimepath search is adequate, but if your
+	    CVIMSYN directory with dictionaries isn't on that path, you
+	    should set g:cvimsyn (or use the CVIMSYN environment variable).
 
 	    For example, under a Windows operating system, one might
 	    have in one's <.vimrc> file:
@@ -268,7 +274,7 @@ VARIABLES CONTROLLING USAGE		*engspchk-var* *engspchk-variable*
 			     If you wish to have rare words show up as Error,
 			     see \er under |engspchk-maps|.
 
-USING ENGSPCHK	*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
+2.4 USING ENGSPCHK	*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
 
 	Although the maps as discussed here show a backslash, the actual
 	maps for 6.0 and above use <Leader> (ie. see :help mapleader for more)
@@ -297,7 +303,7 @@ USING ENGSPCHK	*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
 	    \eJ : remove word under cursor from proj dictionary (permanently)
 
 
-	Click-N-Fix Maps				*engspchk-clicknfix*
+2.5 Click-N-Fix Maps					*engspchk-clicknfix*
 
 	    To enable Click-N-Fix, your mouse must be enabled (ex. :set
 	    mouse=n).  In addition, there are several variables that
@@ -360,7 +366,7 @@ USING ENGSPCHK	*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
 	would conflict with engspchk and restores them when engspchk is
 	ended.
 
-MAPS FOR ALTERNATIVES WINDOW ONLY			*engspchk-alt*
+2.6 MAPS FOR ALTERNATIVES WINDOW ONLY			*engspchk-alt*
 
 	<cr>   : when on alternatives line, will put word under cursor in
 	         misspelled word's stead
@@ -395,7 +401,16 @@ MAPS FOR ALTERNATIVES WINDOW ONLY			*engspchk-alt*
 	lines, thus making it simple for folks to remove unwanted portions
 	the of the wordlist.
 
-USAGE							*engspchk-usage*
+2.7 COMMANDS			*engspchk-cmd* *engspchk-com* *engspchk-command*
+
+	Engspchk checks your ${CVIMSYN} directory and constructs commands to
+	start up engspchk using the appropriate dictionary for each such
+	language.  If, for example, you happen to have a Russian (Rus) and
+	a Spanish (Span) dictionary, Engspchk will construct two commands:
+	:Russpchk and :Spanspchk.  Unless you delete the <engspchk.dict>
+	dictionary, you're likely to have :Engspchk, too.
+
+2.8 USAGE						*engspchk-usage*
 
 	Press "\ec" or select "Load Engspchk" from the menu (gvim).  This will
 	finish loading <engspchk.vim>, load <engspchk.dict>, and optionally
@@ -433,8 +448,8 @@ USAGE							*engspchk-usage*
 	environment variable).  Merely place the cursor on a word that's
 	currently not in your dictionary and press "\es".
 
-FILETYPE ENABLED ENGSPCHK
-							*engspchk-mail*
+2.9 FILETYPE ENABLED ENGSPCHK					*engspchk-mail*
+
 	If you want to always use engspchk for spellchecking *.eml
 	files as mail:
 
@@ -449,7 +464,7 @@ FILETYPE ENABLED ENGSPCHK
 	Similarly one may have engspchk immediately available for other
 	filetypes, too.
 
-CHECKING SPELLING IN COMMENTS				*engspchk-comment*
+2.10 CHECKING SPELLING IN COMMENTS				*engspchk-comment*
 
 	In order to spell-check comments in various computer languages, the
 	language's vim syntax file needs to have its comment syntax group
@@ -464,11 +479,46 @@ CHECKING SPELLING IN COMMENTS				*engspchk-comment*
 	spelling-checked that isn't on the above list, please contact that
 	vim syntax file's maintainer and ask for the support mentioned above.
 
+2.11 ENGSPCHK DICTIONARIES				*engspchk-dict*
+
+	Engspchk supports a number of dictionaries for a given language.
+	The language selected is controlled by
+
+		1. If g:spchklang exists, let it specify the language prefix
+		   (see |spchklang|)
+		2. Use the name of the script, less "spchk.vim", as the
+		   language prefix
+
+	Engspchk then loads a number of dictionary files for a given language.
+	Assuming that the language prefix is "eng":
+
+		engspchk.dict   : the primary dictionary-list (GoodWords)
+		engspchk.dialect: a if-elseif chain based upon using
+		                  b:spchkdialect which loads a set of
+				  GoodWords/Dialect-flagged words.  The
+				  engspchk.dialect file currently supports
+				  "usa", "uk", and "can".
+		engspchk.match  : this file is usually a set of GoodWord
+		                  "syntax-matches" (see |syn-match|) that the
+				  user has set up.
+		engspchk.proper : a dictionary-list of cities, people's names,
+		                  and any other "proper" names (GoodWords)
+		engspchk.rare   : a dictionary-list of unusual/rare words
+		                  (these RareWords are highlighted differently)
+		engspchk.usr    : a dictionary-list of words that the user
+		                  controls via maps (\es, \et, \eS, \eT)
+				  (see |engspchk-es|)
+		engspchk.wordlist : this file is set up for agrep's benefit
+		                  to use for alternative-spellings support
+				  (see |engspchk-alt|
+	
+	Except for <engspchk.dict>, all engspchk's dictionaries are optional.
+
 
 ==============================================================================
 3. More Languages					*engspchk-language*
 
-CREATING A NEW VERSION OF ENGSPCHK			*engspchk-newversion*
+3.1 CREATING A NEW VERSION OF ENGSPCHK			*engspchk-newversion*
 
 	The <engspchk.vim> file should be renamed to reflect the new language
 	being supported: ex. gerspchk.vim  for German.  The prefix (ie. "ger")
@@ -478,7 +528,7 @@ CREATING A NEW VERSION OF ENGSPCHK			*engspchk-newversion*
 	Of course, the appropriate dictionary file (ie., gerspchk.dict) must
 	also be present in the CVIMSYN subdirectory.
 
-CURRENT LANGUAGE SUPPORT				*engspchk-curlang*
+3.2 CURRENT LANGUAGE SUPPORT				*engspchk-curlang*
 
 	Engspchk now supports modelines which allow individual documents
 	to specify to engspchk/vim what language they're in.  Furthermore,
@@ -487,7 +537,7 @@ CURRENT LANGUAGE SUPPORT				*engspchk-curlang*
 
 	Check links under
 
-	  http://www.erols.com/astronaut/vim/index.html#vimlinks_scripts
+	  http://mysite.verizon.net/astronaut/vim/index.html#vimlinks_scripts
 
 	for any of the following dictionaries:
 
@@ -500,7 +550,7 @@ CURRENT LANGUAGE SUPPORT				*engspchk-curlang*
 	  Russian  : (koi8)
 	  Spanish
 
-EARLIER LANGUAGE SUPPORT				*engspchk-earlylang*
+3.3 EARLIER LANGUAGE SUPPORT				*engspchk-earlylang*
 
 	There are versions of this script for other languages.  If you come
 	up with a version for another language, please let me know where on
@@ -517,6 +567,20 @@ EARLIER LANGUAGE SUPPORT				*engspchk-earlylang*
 ==============================================================================
 4. History						*engspchk-history*
 
+	58    : Jun 18, 2004  * bugfix: modelines now have higher priority
+				than g:... settings
+			      * bugfix: modelines with multiple settings weren't
+			        being highlighted properly.
+			      * :(lang)spchk commands for starting engspchk
+				now available with both gvim and vim; ie.
+				:Engspchk  :Nlspchk :Spanspchk :Gerspchk :Frspchk
+				The set of commands you get are based on which
+				dictionaries you have available in CVIMSYN.
+			      * Saving/restoration of user maps wasn't complete
+				Thanks to Ezekiel Burke for pointing this out!
+			      * Error messages are now followed by a
+				"Press <cr> to continue" message so they remain
+				visible
 	57    : Jun 16, 2004  * bugfix: (thanks to Sergey Markelov) variable-not
 				found message when mapleader not explicitly set
 				now eliminated
@@ -563,7 +627,7 @@ EARLIER LANGUAGE SUPPORT				*engspchk-earlylang*
 			      *	A more robust decision process supports
 				determining when a leftmouse click means
 				go to the next spelling	error or open
-				an alternates window on	the currnet word
+				an alternates window on	the current word
 			      *	gvim was behaving differently than vim
 				with HLTest() -- fixed
 	50    :	May 11,	2004  *	bugfixes: wordlist generation

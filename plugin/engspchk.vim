@@ -1,10 +1,11 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Jun 16, 2004
-" Version:     57
+" Last Change: Sep 24, 2004
+" Version:     58
 " License:     GPL (Gnu Public License)
 "
+" GetLatestVimScripts: :AutoInstall: 195 1 engspchk.vim
 " Help: {{{1
 " Environment Variables: {{{2
 "
@@ -149,8 +150,8 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
- let s:loaded_{b:spchkfile}spchk=  1
- let s:spchkversion             = 57
+ let s:spchkversion             = "v58"
+ let s:loaded_{b:spchkfile}spchk= s:spchkversion
  let s:engspchk_loadcnt         =  0
 
  " ---------------------------------------------------------------------
@@ -178,8 +179,8 @@ if !exists("s:loaded_".s:spchkfile."spchk")
    endif
    let b:engspchk_loaded  = 1
    let s:engspchk_loadcnt = s:engspchk_loadcnt + 1
-   let b:hidden           = &hidden
-   set hidden
+   let b:hidden           = &bh
+   set bh=hide
 "   call Decho("b:engspchk_loaded=".b:engspchk_loaded." s:engspchk_loadcnt=".s:engspchk_loadcnt)
 
    if !exists("b:spchkfile")
@@ -193,7 +194,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
    endif
 
    let b:ch_keep = &ch
-   let s:errid     = synIDtrans(hlID("Error"))
+   let s:errid   = synIDtrans(hlID("Error"))
 "   call Decho("setting spchkfile=".b:spchkfile)
 "   call Decho("setting spchklang=".b:spchklang)
 "   call Decho("setting Spchklang=".b:Spchklang)
@@ -265,11 +266,13 @@ if !exists("s:loaded_".s:spchkfile."spchk")
      endif
     
      if !isdirectory(g:cvimsyn)
-      echoerr 'Unable to find dictionaries; please let g:cvimsyn="..path to dictionaries" in your <.vimrc>'
+      echoerr 'Unable to find dictionaries (see :help cvimsyn)'
+      call inputsave()|call input("Press <cr> to continue")|call inputrestore()
       finish
      endif
      if glob(g:cvimsyn."/*spchk.dict") == ""
-      echoerr 'Dictionaries not present in <'.g:cvimsyn.'> -- please check path!'
+      echoerr 'Dictionaries are missing from <'.g:cvimsyn.'> -- please check path!'
+      call inputsave()|call input("Press <cr> to continue")|call inputrestore()
       finish
      endif
     endif
@@ -279,12 +282,13 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 
   " ---------------------------------------------------------------------
   " AltLangMenus: read cvimsyn directory for alternate languages {{{2
-  "    domenu=1 : make menu entries
+  "    domenu=2 : make menu entries and loading by language commands
+  "          =1 : set up loading-by-language commands (:Engspchk :Nlspchk etc)
   "          =0 : unmenu the entries
   fun! s:AltLangMenus(domenu)
 "    call Dfunc("AltLangMenus(domenu=".a:domenu.")")
 
-  	if a:domenu == 1
+  	if a:domenu >= 1
 	 call s:SpchkSetCvimsyn()
 	 let b:cvimsyn= g:cvimsyn
 "	 call Decho("b:cvimsyn set to <".b:cvimsyn.">")
@@ -299,10 +303,11 @@ if !exists("s:loaded_".s:spchkfile."spchk")
        let lang     = substitute(dictfile,'^.*[/\\]\(.*\)spchk.dict','\1','e')
 "       call Decho("lang<".lang."> dictfile<".dictfile."> dictfiles<".dictfiles.">")
        let Lang   = substitute(lang,'\(.\)\(.*\)','\u\1\2','e')
-       if lang != b:spchklang
+       if lang != b:spchklang && a:domenu == 2
 	   	" make alternate-language menu entry only if its not the default language
         exe 'menu '.g:DrChipTopLvlMenu.'Load\ AltLang\ Spelling\ Checker.Load\ As\ '.Lang.'spchk :call <SID>SpchkAltLang("'.lang.'")'."<cr>"
        endif
+"	   call Decho('setting up '.Lang.'spchk command')
 	   exe "com! ".Lang."spchk exe 'normal ".s:usermaplead."ee' | let g:spchklang= '".lang."' | normal ".s:usermaplead."ec"
       endwhile
      endif
@@ -362,6 +367,8 @@ if !exists("s:loaded_".s:spchkfile."spchk")
    let g:DrChipTopLvlMenu= "DrChip."
   endif
   exe 'menu '.g:DrChipTopLvlMenu.'Load\ Spelling\ Checker<tab>'.s:mapleadstring.'ec	<Leader>ec'
+  call s:AltLangMenus(2)
+ else
   call s:AltLangMenus(1)
  endif
 
@@ -433,6 +440,21 @@ fun! s:SpchkRestorePosn()
 endfun
 
 " ---------------------------------------------------------------------
+" Convert global to local variables {{{2
+let b:spchkaltright    = exists("g:spchkaltright")?    g:spchkaltright    : 0
+let b:spchkacronym     = exists("g:spchkacronym")?     g:spchkacronym     : 0
+call s:SpchkSetCvimsyn()
+let b:cvimsyn          = g:cvimsyn
+let b:DrChipTopLvlMenu = exists("g:DrChipTopLvlMenu")? g:DrChipTopLvlMenu : ""
+let b:spchkautonext    = exists("g:spchkautonext")?    g:spchkautonext    : 0
+let b:spchkdialect     = exists("g:spchkdialect")?     g:spchkdialect     : "usa"
+let b:spchknonhl       = exists("g:spchknonhl")?       g:spchknonhl       : 0
+let b:spchkmouse       = exists("g:spchkmouse")?       g:spchkmouse       : 0
+let b:spchkpunc        = exists("g:spchkpunc")?        g:spchkpunc        : 0
+let b:spchksilent      = exists("g:spchksilent")?      g:spchksilent      : 0
+let b:spchkproj        = exists("g:spchkproj")?        g:spchkproj        : ""
+
+" ---------------------------------------------------------------------
 " Process modelines from top and bottom of file, if any {{{2
 if &mls > 0
  call s:SpchkSavePosn()
@@ -450,21 +472,6 @@ if &mls > 0
  exe "silent ".lastlinemls.",".lastline.'g/\<spchk:/call s:SpchkModeline()'
  call s:SpchkRestorePosn()
 endif
-
-" ---------------------------------------------------------------------
-" Convert global to local variables {{{2
-let b:spchkaltright    = exists("g:spchkaltright")?    g:spchkaltright    : 0
-let b:spchkacronym     = exists("g:spchkacronym")?     g:spchkacronym     : 0
-call s:SpchkSetCvimsyn()
-let b:cvimsyn          = g:cvimsyn
-let b:DrChipTopLvlMenu = exists("g:DrChipTopLvlMenu")? g:DrChipTopLvlMenu : ""
-let b:spchkautonext    = exists("g:spchkautonext")?    g:spchkautonext    : 0
-let b:spchkdialect     = exists("g:spchkdialect")?     g:spchkdialect     : "usa"
-let b:spchknonhl       = exists("g:spchknonhl")?       g:spchknonhl       : 0
-let b:spchkmouse       = exists("g:spchkmouse")?       g:spchkmouse       : 0
-let b:spchkpunc        = exists("g:spchkpunc")?        g:spchkpunc        : 0
-let b:spchksilent      = exists("g:spchksilent")?      g:spchksilent      : 0
-let b:spchkproj        = exists("g:spchkproj")?        g:spchkproj        : ""
 
 " ---------------------------------------------------------------------
 
@@ -513,7 +520,7 @@ fun! s:HLTest(hlname)
   let bg_hlname= synIDattr(id_trans,"bg")
 "  call Decho("fg_hlname<".fg_hlname."> bg_hlname<".bg_hlname.">")
 
-  if fg_hlname == "" && bg_hlname == ""
+  if fg_hlname == -1 && bg_hlname == -1
 "   call Dret("HLTest 0")
    return 0
   endif
@@ -522,7 +529,7 @@ fun! s:HLTest(hlname)
 endfun
 
 " ---------------------------------------------------------------------
-" SpchkHighlight: define Warning Dialect Notice and RareWord as needed
+" SpchkHighlight: define Warning Dialect Notice and RareWord as needed {{{2
 fun! s:SpchkHighlight()
   " check if user has specified a Dialect highlighting group.
   " If not, this script will highlight-link it to a Warning highlight group.
@@ -549,34 +556,55 @@ au CursorHold,FocusGained	*	silent call <SID>SpchkHighlight()
 
 " ---------------------------------------------------------------------
 
-" SaveMap: this function sets up a buffer-variable (b:spchk_restoremap) {{{1
+" SaveMap: this function sets up a buffer-variable (b:spchk_restoremap) {{{2
 "          which will be used by StopDrawIt to restore user maps
 "          mapchx: either <something>  which is handled as one map item
 "                  or a string of single letters which are multiple maps
 "                  ex.  mapchx="abc" and maplead='\': \a \b and \c are saved
 fun! <SID>SaveMap(mapmode,maplead,mapchx)
-  " save <Leader>map
-  if maparg(a:maplead.a:mapchx,a:mapmode) != ""
-    let b:spchk_restoremap= a:mapmode."map ".a:maplead.a:mapchx." ".maparg(a:maplead.a:mapchx,a:mapmode)."|".b:spchk_restoremap
-    exe a:mapmode."unmap ".a:maplead.a:mapchx
-   endif
+"  call Dfunc("SaveMap(mapmode<".a:mapmode."> maplead<".a:maplead."> mapchx<".a:mapchx.">)")
+"  call Decho("in savemap: bufnr#".bufnr("%")." name<".bufname("%").">")
+"  call Decho("is single map? strpart(mapchx<".a:mapchx.">,0,1) == ".strpart(a:mapchx,0,1))
+  if strpart(a:mapchx,0,1) == '<'
+   " save single map <something>
+   if maparg(a:mapchx,a:mapmode) != ""
+"     call Decho("saving single map ".a:mapchx)
+     let b:spchk_restoremap= a:mapmode."map ".a:mapchx." ".maparg(a:mapchx,a:mapmode)."|".b:spchk_restoremap
+     exe a:mapmode."unmap ".a:mapchx
+    endif
+  else
+   " save multiple maps
+   let i= 1
+   while i <= strlen(a:mapchx)
+    let amap=a:maplead.strpart(a:mapchx,i-1,1)
+"	call Decho("multimaps: maparg(amap<".amap.">,mapmode<".a:mapmode.">)=".maparg(amap,a:mapmode))
+    if maparg(amap,a:mapmode) != ""
+"     call Decho("saving multiple maps: <".amap.">")
+     let b:spchk_restoremap= a:mapmode."map ".amap." ".maparg(amap,a:mapmode)."|".b:spchk_restoremap
+     exe a:mapmode."unmap ".amap
+    endif
+    let i= i + 1
+   endwhile
+  endif
+"  call Dret("SaveMap")
 endfunction
 
 " ---------------------------------------------------------------------
 "  User Interface: {{{1
 let b:spchk_restoremap= ""
-call <SID>SaveMap("n",s:usermaplead,"ea")
-call <SID>SaveMap("n",s:usermaplead,"ed")
-call <SID>SaveMap("n",s:usermaplead,"ee")
-call <SID>SaveMap("n",s:usermaplead,"ej")
-call <SID>SaveMap("n",s:usermaplead,"eJ")
-call <SID>SaveMap("n",s:usermaplead,"en")
-call <SID>SaveMap("n",s:usermaplead,"ep")
-call <SID>SaveMap("n",s:usermaplead,"et")
-call <SID>SaveMap("n",s:usermaplead,"eT")
-call <SID>SaveMap("n",s:usermaplead,"es")
-call <SID>SaveMap("n",s:usermaplead,"eS")
-call <SID>SaveMap("v",s:usermaplead,"eV")
+"call Decho("starting savemap: bufnr#".bufnr("%")." name<".bufname("%").">")
+call <SID>SaveMap("n",s:usermaplead.'e',"a")
+call <SID>SaveMap("n",s:usermaplead.'e',"d")
+call <SID>SaveMap("n",s:usermaplead.'e',"e")
+call <SID>SaveMap("n",s:usermaplead.'e',"j")
+call <SID>SaveMap("n",s:usermaplead.'e',"J")
+call <SID>SaveMap("n",s:usermaplead.'e',"n")
+call <SID>SaveMap("n",s:usermaplead.'e',"p")
+call <SID>SaveMap("n",s:usermaplead.'e',"t")
+call <SID>SaveMap("n",s:usermaplead.'e',"T")
+call <SID>SaveMap("n",s:usermaplead.'e',"s")
+call <SID>SaveMap("n",s:usermaplead.'e',"S")
+call <SID>SaveMap("v",s:usermaplead.'e',"V")
 
 " Maps to facilitate entry of new words {{{2
 "  use  temporarily (\et)   remove temporarily (\eT)
@@ -652,6 +680,7 @@ if b:spchkmouse > 0
   set mouse+=n
  endif
  call <SID>SaveMap("n","","<leftmouse>")
+ call <SID>SaveMap("n","","<middlemouse>")
  call <SID>SaveMap("n","","<rightmouse>")
  nnoremap <silent> <leftmouse>    <leftmouse>:call <SID>SpchkMouse(0)<CR>
  nnoremap <silent> <middlemouse>  <leftmouse>:call <SID>SpchkMouse(1)<CR>
@@ -715,7 +744,9 @@ endif
 " Find Dictionary Path: {{{2
 
 if b:cvimsyn == ""
- echoerr 'Please set either g:cvimsyn (vim) or $CVIMSYN (environment)'
+" call Decho('Please set either g:cvimsyn (vim) or $CVIMSYN (environment)')
+ echoerr 'Please set either g:cvimsyn or the CVIMSYN environment variable (:help cvimsyn)'
+ call inputsave()|call input("Press <cr> to continue")|call inputrestore()
  finish
 endif
 
@@ -760,7 +791,9 @@ if !filereadable(b:cvimsyn."/".b:spchklang."spchk.dict")
 
  " sanity check
  if !exists("b:cvimsyn") || b:cvimsyn == ""
-  echoerr 'engspchk unable to find dictionaries (see g:cvimsyn or $CVIMSYN)'
+"  call Decho("Unable to find ".b:spchklang."spchk.dict dictionary (:help cvimsyn)")
+  echoerr "Unable to find ".b:spchklang."spchk.dict dictionary (try :help cvimsyn)"
+  call inputsave()|call input("Press <cr> to continue")|call inputrestore()
   finish
  endif
 endif
@@ -768,7 +801,7 @@ endif
 
 " ---------------------------------------------------------------------
 
-" Detect whether BadWords should be detected/highlighted inside comments. {{{1
+" Detect whether BadWords should be detected/highlighted inside comments. {{{2
 " This can be done only for those syntax files' comment blocks that
 " contains=@cluster.  The code below adds GoodWord and BadWord to various
 " clusters.  If your favorite syntax comments are not included, send a note
@@ -847,7 +880,9 @@ if s:incluster == 0
   syn cluster Spell				add=GoodWord,BadWord
   let s:incluster=1
  else
-"  call Decho("@Spell not used")
+  " @Spell cluster not used since the syntax writer didn't use @Spell.
+"  " call Decho(&ft." doesn't have @Spell.  Using containedin...")
+  echomsg "***warning*** syntax <".&ft."> doesn't support spell-checking"
  endif
  silent! has_cluster= ChkForCluster("texMatchGroup")
  if has_cluster
@@ -865,13 +900,16 @@ endif
 " SpchkLoadDictionary: this function loads the specified dictionary {{{2
 "     reqd=0          not required      (no error message if not present)
 "         =1          check if writable (not required)
-"         =2          required          (merely gives error message)
+"         =2          required          (gives error message if not present)
 "     lang="eng" etc  language of dictionary
 "     dict="dict"     main dictionary
 "         ="rare"     rarewords dictionary
 "         ="dialect"  dialect dictionary
 "         ="usr"      user's personal dictionary
 "         ="proj"     project-specific dictionary
+"         ="match"    loads after BadWord is defined, hence
+"                     syn match GoodWord "..pattern.." will take priority
+"                     
 "
 "         This function will first set "syn case ignore".  However,
 "         the dictionary file itself may override this with a
@@ -973,6 +1011,7 @@ if b:spchklang ==? "eng"
  " these contractions' word prior to the "'" has been removed from the
  " keyword dictionaries above and moved here.
  syn case ignore
+
  syn match GoodWord "\<\(you\|he\|it\|ne\|we\|a\|i\|o\)\>"
  syn match GoodWord "\<\(e'er\|he'd\|howe\|i'll\|i've\|must\|need\|o'er\|shan\|they\|what\|are\|can\|cap\|don\|i'm\|may\|she\|who\|won\)\>"
  syn match GoodWord "\<\(could\|don't\|haven\|isn't\|might\|ne'er\|ought\|shall\|there\|we'll\|we're\|we've\|where\|won't\|would\|you'd\)\>"
@@ -1013,6 +1052,10 @@ endif
 " Ignore web addresses and \n for newlines {{{2
 syn match GoodWord transparent	"\<http://www\.\S\+"
 syn match GoodWord transparent	"\\n"
+
+" Load the "match" dictionary -- intended to allow match patterns to be {{{2
+" loaded after the BadWord (like English's contractions above).
+call s:SpchkLoadDictionary(0,b:spchklang,"match")
 
 " BadWords are highlighted with Error highlighting (by default) {{{2
 "   Colorschemes, such as navajo-night, may define BadWord to
@@ -1174,9 +1217,9 @@ fun! <SID>SpchkPrv(autofix)
 endfunction
 
 if !hasmapto('<Plug>SpchkAlternate')
- map <silent> <Leader>ea <Plug>SpchkAlternate
+ nmap <silent> <Leader>ea <Plug>SpchkAlternate
 endif
-map <silent> <script> <Plug>SpchkAlternate :call <SID>SpchkAlternate(expand("<cword>"))<CR>
+nmap <silent> <script> <Plug>SpchkAlternate :call <SID>SpchkAlternate(expand("<cword>"))<CR>
 
 " -----------------------------------------------------------------
 
@@ -1224,12 +1267,17 @@ fun! <SID>SpchkAlternate(wrd)
 
   " can't provide alternative spellings without agrep
   if !executable("agrep")
-   echoerr "engspchk: needs agrep for alternative spellings support"
+   echoerr "engspchk: needs agrep for alternative spellings support (:help engspchk-agrep)"
+   call inputsave()|call input("Press <cr> to continue")|call inputrestore()
 "   call Dret("SpchkAlternate : needs agrep")
    return
   endif
 "  call Decho("agrep is executable")
 
+  if !exists("b:spchklang")
+   echomsg "Reloading engspchk"
+   silent! call <SID>LoadSpchk()
+  endif
   " because SpchkAlternate switches buffers to an "alternate spellings"
   " window, the various b:... variables will no longer be available, but
   " they're still needed!
@@ -1672,7 +1720,7 @@ fun! <SID>SpchkEnd()
   syn clear
   filetype detect
 
-  let &hidden            = b:hidden
+  let &bh                = b:hidden
   let s:engspchk_loadcnt = s:engspchk_loadcnt - 1
   unlet b:engspchk_loaded b:hidden
   call s:SpchkVisBlock(1)
@@ -1681,16 +1729,28 @@ fun! <SID>SpchkEnd()
   if s:engspchk_loadcnt <= 0
    let s:engspchk_loadcnt= 0
 
+   nunmap <Leader>ea
+   nunmap <Leader>ed
    nunmap <Leader>ee
+   nunmap <Leader>ej
+   nunmap <Leader>eJ
+   nunmap <Leader>en
+   nunmap <Leader>ep
    nunmap <Leader>et
    nunmap <Leader>eT
    nunmap <Leader>es
    nunmap <Leader>eS
-   nunmap <Leader>ej
-   nunmap <Leader>eJ
+   nunmap <Leader>eV
+   if b:spchkmouse > 0
+   	nunmap <leftmouse>
+   	nunmap <middlemouse>
+   	nunmap <rightmouse>
+   endif
 
    " restore user map(s), if any
-   if b:spchk_restoremap != ""
+"   call Decho("restoration: bufnr#".bufnr("%")." bufname<".bufname("%").">")
+   if exists("b:spchk_restoremap") && b:spchk_restoremap != ""
+"   	call Decho("restoring user maps, if any")
     exe b:spchk_restoremap
     unlet b:spchk_restoremap
    endif
@@ -1699,19 +1759,20 @@ fun! <SID>SpchkEnd()
    if has("gui_running") && has("menu")
 "   	call Decho("remove menu entries")
     exe 'menu '.b:DrChipTopLvlMenu.'Load\ Spelling\ Checker<tab>'.s:mapleadstring.'ec	<Leader>ec'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Alternative\ spellings<tab>'.s:mapleadstring.'ea'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ next\ spelling\ error<tab>'.s:mapleadstring.'en'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'et'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'es'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'ej'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'eT'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eS'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eJ'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Dialect:\ toggle\ Warning/Error\ highlighting<tab>\ed'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.RareWord:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'er'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Load\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ec'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.End\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ee'
+
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Alternative\ spellings<tab>'.s:mapleadstring.'ea		'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ next\ spelling\ error<tab>'.s:mapleadstring.'en	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'et	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'es	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'ej	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'eT	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eS	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eJ	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Dialect:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'ed	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.RareWord:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'er	'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Load\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ec		'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.End\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ee		'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Help<tab>\ '
 	call s:AltLangMenus(1)
    endif
@@ -1742,10 +1803,9 @@ endif
 " ---------------------------------------------------------------------
 
 " Modeline highlighting - ignore spchk: lines {{{1
-syn match spchkModeline 	"^.*\<spchk:.*$"	contains=spchkML,spchkMLop
+syn match spchkModeline 	"^.*\<spchk:.*$"	contains=spchkML,spchkMLsetting
 syn match spchkML			"\<spchk\>"			contained
-syn match spchkMLop			"[:=]"				contained skipwhite nextgroup=spchkMLsetting
-syn match spchkMLsetting	"\k\+"				contained contains=spchkMLoption
+syn match spchkMLsetting	"\<\k\+=\k\+"		contains=spchkMLop,spchkMLoption
 syn match spchkVimModeline	"^\s*%\s*vim:.*$"
 syn keyword spchkMLoption contained cvimsyn               acronym       autonext      mouse      punc        lang
 syn keyword spchkMLoption contained DrChipTopLvlMenu      altright      dialect       nonhl      silent      proj
