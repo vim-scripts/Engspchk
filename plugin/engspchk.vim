@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Dec 15, 2004
-" Version:     59
+" Last Change: Feb 11, 2005
+" Version:     60
 " License:     GPL (Gnu Public License)
 "
 " GetLatestVimScripts: :AutoInstall: 195 1 engspchk.vim
@@ -150,7 +150,7 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
- let s:spchkversion             = "v59"
+ let s:spchkversion             = "v60"
  let s:loaded_{b:spchkfile}spchk= s:spchkversion
  let s:engspchk_loadcnt         =  0
 
@@ -362,7 +362,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 
   " ---------------------------------------------------------------------
   " set up DrChipTopLevelMenu {{{2
- if exists("did_install_default_menus") && has("menu") && has("gui_running")
+ if exists("did_install_default_menus") && has("menu") && has("gui_running") && &go =~ 'm'
   if !exists("g:DrChipTopLvlMenu") || g:DrChipTopLvlMenu == ""
    let g:DrChipTopLvlMenu= "DrChip."
   endif
@@ -484,7 +484,7 @@ if !b:spchksilent
 endif
 
 " remove "Load Spelling Checker" from menu {{{2
-if exists("did_install_default_menus") && has("menu") && has("gui_running")
+if exists("did_install_default_menus") && has("menu") && has("gui_running") && &go =~ 'm'
  " remove \ec from DrChip menu
  exe 'silent! unmenu '.b:DrChipTopLvlMenu.'Load\ Spelling\ Checker'
 " call Decho("uninstalled menu item: Load Spelling Checker")
@@ -695,7 +695,7 @@ endif
 
 " ---------------------------------------------------------------------
 " DrChip Menu {{{2
-if exists("did_install_default_menus") && has("menu") && has("gui_running")
+if exists("did_install_default_menus") && has("menu") && has("gui_running") && &go =~ 'm'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Alternative\ spellings<tab>'.s:mapleadstring.'ea		'.s:usermaplead.'ea'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ next\ spelling\ error<tab>'.s:mapleadstring.'en	'.s:usermaplead.'en'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep	'.s:usermaplead.'ep'
@@ -810,52 +810,60 @@ endif
 " This can be done only for those syntax files' comment blocks that
 " contains=@cluster.  The code below adds GoodWord and BadWord to various
 " clusters.  If your favorite syntax comments are not included, send a note
-let s:incluster= 0
-if     &ft == "amiga"
-" call Decho("amiga: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
- let s:incluster=1
-elseif &ft == "bib"
-" call Decho("bib: GoodWord, BadWord added to Spell cluster")
- syn cluster bibVarContents     	contains=GoodWord,BadWord
- syn cluster bibCommentContents 	contains=GoodWord,BadWord
- let s:incluster=1
-elseif &ft == "c" || &ft == "cpp"
-" call Decho("c: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
- let s:incluster=1
-elseif &ft == "csh"
-"  call Decho("csh: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
- let s:incluster=1
-elseif &ft == "dcl"
-" call Decho("dcl: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
- let s:incluster=1
-elseif &ft == "fortran"
-" call Decho("fortran: GoodWord, BadWord added to Spell cluster")
- syn cluster fortranCommentGroup	add=GoodWord,BadWord
- syn match   fortranGoodWord contained	"^[Cc]\>"
- syn cluster fortranCommentGroup	add=fortranGoodWord
- hi link fortranGoodWord fortranComment
- let s:incluster=1
-elseif &ft == "mail"
-" call Decho("mail: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell			add=GoodWord,BadWord
- let s:incluster=2
-elseif &ft == "sh"
-" call Decho("sh: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell			add=GoodWord,BadWord
- let s:incluster=1
-elseif &ft == "tex"
-" call Decho("tex: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell			add=GoodWord,BadWord
- syn cluster texMatchGroup	add=GoodWord,BadWord
- let s:incluster=2
-elseif &ft == "vim"
-" call Decho("vim: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell			add=GoodWord,BadWord
- let s:incluster=1
+if exists("b:spchk_incluster")
+ let s:incluster= b:spchk_incluster
+else
+ let s:incluster= 0
+ if     &ft == "amiga"
+ " call Decho("amiga: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell		add=GoodWord,BadWord
+  let s:incluster=1
+ elseif &ft == "bib"
+ " call Decho("bib: GoodWord, BadWord added to Spell cluster")
+  syn cluster bibVarContents     	contains=GoodWord,BadWord
+  syn cluster bibCommentContents 	contains=GoodWord,BadWord
+  let s:incluster=1
+ elseif &ft == "c" || &ft == "cpp"
+ " call Decho("c: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell		add=GoodWord,BadWord
+  let s:incluster=1
+ elseif &ft == "csh"
+ "  call Decho("csh: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell		add=GoodWord,BadWord
+  let s:incluster=1
+ elseif &ft == "dcl"
+ " call Decho("dcl: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell		add=GoodWord,BadWord
+  let s:incluster=1
+ elseif &ft == "fortran"
+ " call Decho("fortran: GoodWord, BadWord added to Spell cluster")
+  syn cluster fortranCommentGroup	add=GoodWord,BadWord
+  syn match   fortranGoodWord contained	"^[Cc]\>"
+  syn cluster fortranCommentGroup	add=fortranGoodWord
+  hi link fortranGoodWord fortranComment
+  let s:incluster=1
+ elseif &ft == "html"
+ " call Decho("html: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell			add=GoodWord,BadWord
+  let s:incluster=2
+ elseif &ft == "mail"
+ " call Decho("mail: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell			add=GoodWord,BadWord
+  let s:incluster=2
+ elseif &ft == "sh"
+ " call Decho("sh: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell			add=GoodWord,BadWord
+  let s:incluster=1
+ elseif &ft == "tex"
+ " call Decho("tex: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell			add=GoodWord,BadWord
+  syn cluster texMatchGroup	add=GoodWord,BadWord
+  let s:incluster=2
+ elseif &ft == "vim"
+ " call Decho("vim: GoodWord, BadWord added to Spell cluster")
+  syn cluster Spell			add=GoodWord,BadWord
+  let s:incluster=1
+ endif
 endif
 "call Decho("s:incluster=".s:incluster." ft=".&ft)
 
@@ -999,49 +1007,13 @@ if s:incluster == 0 || s:incluster == 2 || b:spchknonhl
  endif
 endif
 if s:incluster == 1 || s:incluster == 2
-" call Decho("s:incluster=".s:incluster.": BadWords match inside syntax (contained)")
+" call Decho("s:incluster=".s:incluster.": BadWords match inside syntax with @Spell (contained)")
  if b:spchklang == "eng"
   syn match BadWord contained	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect,OutOfBlock
   syn cluster Spell add=Dialect,RareWord
  else
   syn match BadWord contained	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect,OutOfBlock
  endif
-endif
-
-" English-only exceptions: contractions and other language special handling {{{2
-if b:spchklang ==? "eng"
-" call Decho("handle contractions, etc for ".b:spchklang)
- " Note: *matches* need to follow the BadWord so that they take priority!
- " Abbreviations, Possessives, Etc.  For these to be recognized properly,
- " these contractions' word prior to the "'" has been removed from the
- " keyword dictionaries above and moved here.
- syn case ignore
-
- syn match GoodWord "\<\(you\|he\|it\|ne\|we\|a\|i\|o\)\>"
- syn match GoodWord "\<\(e'er\|he'd\|howe\|i'll\|i've\|must\|need\|o'er\|shan\|they\|what\|are\|can\|cap\|don\|i'm\|may\|she\|who\|won\)\>"
- syn match GoodWord "\<\(could\|don't\|haven\|isn't\|might\|ne'er\|ought\|shall\|there\|we'll\|we're\|we've\|where\|won't\|would\|you'd\)\>"
- syn match GoodWord "\<\(ch'ing\|didn't\|hasn't\|i'd\('ve\)\=\|may've\|should\|wasn't\|who've\|you'll\|you're\|you've\|ain't\|cap'n\)\>"
- syn match GoodWord "\<\(it'd've\|must've\|there'd\|they'll\|they're\|they've\|we'd\('ve\)\=\|weren't\|what'll\|what've\|aren't\)\>"
- syn match GoodWord "\<\(there'll\|there've\|where've\|won't've\|would've\|you'd've\|daren't\|doesn't\|haven't\|he'd've\|howe'er\)\>"
- syn match GoodWord "\<\(can't\('ve\)\=\|could've\|s\=he'll\('ve\)\=\|might've\|ought've\|oughtn't\|shall've\|she'd\('ve\)\=\)\>"
- syn match GoodWord "\<\(needn't\('ve\)\=\|hadn't\('ve\)\=\|mayn't\('ve\)\=\|shan't\('ve\)\=\|should've\|they'd\('ve\)\=\)\>"
- syn match GoodWord	"\<\(shouldn't\('ve\)\=\|couldn't\('ve\)\=\|mightn't\('ve\)\=\|wouldn't\('ve\)\=\|mustn't\('ve\)\=\)\>"
- syn match GoodWord	"\(et al\|ph\.d\|e\.g\|i\.e\|mrs\|dr\|ex\|jr\|mr\|ms\|mba\|pm\)\."
- syn match GoodWord	"ex-"
- syn match GoodWord	"'s\>"
- let b:spchkacronym= 1
-
- " These are proper English words but vim has assigned special meaning to them,
- " so they may not be used in keyword lists
- syn match GoodWord	"\<\(transparent\|contained\|contains\|conceal\|display\|extend\|fold\|skip\)\>"
- syn case match
-endif
-
-" Acronymns {{{2
-if b:spchkacronym
- " Pan Shizhu suggested that two or more capitalized letters
- " should be treated as an abbreviation and accepted
- syn match GoodWord	"\<\u\{2,}\>"
 endif
 
 " Allows <engspchk.vim> to work better with LaTeX {{{2
@@ -1058,9 +1030,21 @@ endif
 syn match GoodWord transparent	"\<http://www\.\S\+"
 syn match GoodWord transparent	"\\n"
 
-" Load the "match" dictionary -- intended to allow match patterns to be {{{2
+" Load the "contract" and "match" dictionaries {{{2
+" these are intended to allow match patterns to be
 " loaded after the BadWord (like English's contractions above).
+" The "contraction" dictionary is the standard one; the "match"
+" one is for the user to modify
+call s:SpchkLoadDictionary(0,b:spchklang,"contraction")
 call s:SpchkLoadDictionary(0,b:spchklang,"match")
+
+" Acronymns {{{2
+if b:spchkacronym
+ " Pan Shizhu suggested that two or more capitalized letters
+ " should be treated as an abbreviation and accepted.  You
+ " may put "let b:spchkacronym= 1" in [lang]spchk.match
+ syn match GoodWord	"\<\u\{2,}\>"
+endif
 
 " BadWords are highlighted with Error highlighting (by default) {{{2
 "   Colorschemes, such as navajo-night, may define BadWord to
@@ -1761,7 +1745,7 @@ fun! <SID>SpchkEnd()
    endif
 
    " remove menu entries
-   if has("gui_running") && has("menu")
+   if has("gui_running") && has("menu") && &go =~ 'm'
 "   	call Decho("remove menu entries")
     exe 'menu '.b:DrChipTopLvlMenu.'Load\ Spelling\ Checker<tab>'.s:mapleadstring.'ec	<Leader>ec'
 

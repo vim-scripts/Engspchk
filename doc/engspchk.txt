@@ -1,4 +1,4 @@
-*engspchk.txt*	English Spelling Checker   (v58)	Oct 01, 2004
+*engspchk.txt*	English Spelling Checker   (v60)	Feb 11, 2005
 
 Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	(elide NOSPAM from my email before using)
@@ -567,6 +567,19 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 ==============================================================================
 4. History						*engspchk-history*
 
+	60    : Jan 07, 2005  * made a special-case for html to have spell
+				checking both in the @Spell cluster and
+				outside of it.
+			      * before attempting to append/delete items from
+				the menubar, an additional check is made
+				that guioptions includes "m"
+			      * added optional [lang]spchk.contraction loading
+			      * moved English contractions to <engspchk.contract>
+				and cleared up a few problems with contractions
+				not being recognized properly.
+			      * b:spchk_incluster now can be used to override
+			        the spell checking in/out/both of the @Spell
+				cluster
 	59    : Nov 10, 2004  * silenced all unmenu operations
 			      * included more has("gui_running") tests for
 				menu handling
