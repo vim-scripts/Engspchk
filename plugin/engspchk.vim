@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: May 11, 2004
-" Version:     50
+" Last Change: Jun 07, 2004
+" Version:     55
 " License:     GPL (Gnu Public License)
 "
 " Help: {{{1
@@ -118,12 +118,26 @@
 if exists("g:spchklang")
  let b:spchklang= substitute(g:spchklang,'spchk\.vim',"","e")
  let b:spchkfile= substitute(expand("<sfile>:t"),'spchk\.vim',"","e")
+" call Decho("g:spchklang<".g:spchklang."> exists, setting up b:spchklang<".b:spchklang."> and b:spchkfile<".b:spchkfile.">")
 else
  let b:spchklang= substitute(expand("<sfile>:t"),'spchk\.vim',"","e")
  let b:spchkfile= b:spchklang
+" call Decho("g:spchklang !exists, setting up b:spchklang<".b:spchklang."> and b:spchkfile<".b:spchkfile.">")
+ let g:spchklang = b:spchklang
+ let g:spchkfile = b:spchkfile
 endif
 let s:spchkfile= b:spchkfile
 let b:Spchklang=substitute(b:spchklang,'\(.\)\(.*\)$','\u\1\2','')
+
+if !exists("g:spchklang")
+ let g:spchklang = b:spchklang
+endif
+if !exists("g:spchkfile")
+ let g:spchkfile = b:spchkfile
+endif
+if !exists("g:Spchklang")
+ let g:Spchklang= b:Spchklang
+endif
 
 if exists("mapleader") && mapleader != ""
  let s:usermaplead= mapleader
@@ -134,8 +148,9 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
+" call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
  let s:loaded_{b:spchkfile}spchk=  1
- let s:spchkversion             = 50
+ let s:spchkversion             = 55
  let s:engspchk_loadcnt         =  0
 
  " ---------------------------------------------------------------------
@@ -144,8 +159,6 @@ if !exists("s:loaded_".s:spchkfile."spchk")
  if !hasmapto('<Plug>LoadSpchk')
   nmap <unique> <Leader>ec <Plug>LoadSpchk
  endif
-
- " Global Maps
  nmap <silent> <script> <Plug>LoadSpchk :call <SID>LoadSpchk()<CR>
 
 " ---------------------------------------------------------------------
@@ -163,12 +176,22 @@ if !exists("s:loaded_".s:spchkfile."spchk")
    set hidden
 "   call Decho("b:engspchk_loaded=".b:engspchk_loaded." s:engspchk_loadcnt=".s:engspchk_loadcnt)
 
+   if !exists("b:spchkfile")
+   	let b:spchkfile= g:spchkfile
+   endif
+   if !exists("b:spchklang")
+   	let b:spchklang= g:spchklang
+   endif
+   if !exists("b:Spchklang")
+   	let b:Spchklang= g:Spchklang
+   endif
+
    let b:ch_keep = &ch
    let s:errid     = synIDtrans(hlID("Error"))
 "   call Decho("setting spchkfile=".b:spchkfile)
 "   call Decho("setting spchklang=".b:spchklang)
 "   call Decho("setting Spchklang=".b:Spchklang)
-"   call Decho("setting errid=".s:errid)
+"   call Decho("setting errid=".s:errid." (Error syntax id)")
 
    set ch=8
    exe 'runtime plugin/'.b:spchkfile.'spchk.vim'
@@ -192,6 +215,63 @@ if !exists("s:loaded_".s:spchkfile."spchk")
   let b:Spchklang = substitute(b:spchklang,'\(.\)\(.*\)$','\u\1\2','')
 
   " ---------------------------------------------------------------------
+  " SpchkSetCvimsyn: default value for path to dictionaries {{{2
+  fun! s:SpchkSetCvimsyn()
+"  	call Dfunc("SpchkSetCvimsyn()")
+
+    if !exists("g:cvimsyn") || g:cvimsyn == ""
+     if exists("$CVIMSYN")
+      let g:cvimsyn= $CVIMSYN
+"      call Decho("setting g:cvimsyn to $CVIMSYN<".g:cvimsyn.">")
+
+     else
+      " Try looking along the rtp
+      let rtpdirlist = &rtp
+      while rtpdirlist != ""
+       let rtpdir     = substitute(rtpdirlist,',.*','','e')
+       let rtpdirlist = substitute(rtpdirlist,'.\{-},','','e')
+"       call Decho("Trying <".rtpdir."> from <".rtpdirlist.">")
+       if isdirectory(rtpdir."/CVIMSYN")
+       	break
+       endif
+       if stridx(rtpdirlist,',') == -1
+       	let rtpdir= ""
+       	break
+       endif
+      endwhile
+      let g:cvimsyn= rtpdir."/CVIMSYN"
+     endif
+    endif
+    
+    " if g:cvimsyn still doesn't exist...
+    if !exists("g:cvimsyn") || g:cvimsyn == ""
+"	 call Decho("g:cvimsyn still not good, checking presets")
+     if expand('$HOME') != ""
+      if has("win32") || has("win64") || has("win95")
+       let g:cvimsyn= expand('$HOME').'/vimfiles/CVIMSYN'
+      else
+       let g:cvimsyn= expand('$HOME')."/.vim/CVIMSYN"
+	  endif
+	 else
+      if has("win32") || has("win64") || has("win95")
+       let g:cvimsyn= 'c:/vimfiles/CVIMSYN'
+	  endif
+     endif
+    
+     if !isdirectory(g:cvimsyn)
+      echoerr 'Unable to find dictionaries; please let g:cvimsyn="..path to dictionaries" in your <.vimrc>'
+      finish
+     endif
+     if glob(g:cvimsyn."/*spchk.dict") == ""
+      echoerr 'Dictionaries not present in <'.g:cvimsyn.'> -- please check path!'
+      finish
+     endif
+    endif
+
+"  	call Dret("SpchkSetCvimsyn : g:cvimsyn<".g:cvimsyn.">")
+  endfun
+
+  " ---------------------------------------------------------------------
   " AltLangMenus: read cvimsyn directory for alternate languages {{{2
   "    domenu=1 : make menu entries
   "          =0 : unmenu the entries
@@ -199,7 +279,8 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 "    call Dfunc("AltLangMenus(domenu=".a:domenu.")")
 
   	if a:domenu == 1
-     let b:cvimsyn= exists("g:cvimsyn")? g:cvimsyn : $CVIMSYN
+	 call s:SpchkSetCvimsyn()
+	 let b:cvimsyn= g:cvimsyn
 "	 call Decho("b:cvimsyn set to <".b:cvimsyn.">")
      if b:cvimsyn != ""
       let dictfiles= glob(b:cvimsyn."/*spchk.dict")
@@ -263,9 +344,12 @@ fun! s:SpchkModeline()
   while curline != ""
 "   call Decho("curline<".curline.">")
    let curopt  = "b:spchk".substitute(curline,'^\([bg]:\)\=\(spchk\)\=\(\a\+\)=.*$','\3','e')
-   let curval  = substitute(curline,'^\a\+=\(\S*\).*$','\1','')
-   exe "let ".curopt.'="'.curval.'"'
-"   call Decho("setting ".curopt.'="'.curval.'"')
+"   call Decho("curopt<".curopt.">")
+   if curopt == "b:spchkacronym" || curopt == "b:spchkaltright" || curopt == "b:spchkautonext" || curopt == "b:spchkcvimsyn" || curopt == "b:spchkdialect" || curopt == "b:spchkDrChipTopLvlMenu" || curopt == "b:spchklang" || curopt == "b:spchkmouse" || curopt == "b:spchknonhl" || curopt == "b:spchkproj" || curopt == "b:spchkpunc" || curopt == "b:spchksilent"
+    let curval  = substitute(curline,'^\a\+=\(\S*\).*$','\1','')
+"	call Decho("setting ".curopt."=".curval)
+    exe "let ".curopt.'="'.curval.'"'
+   endif
    let curline= substitute(curline,'^[^: \t]\+:\=\s*\(.*\)$','\1','e')
   endwhile
 "  call Dret("SpchkModeline")
@@ -331,22 +415,11 @@ if &mls > 0
 endif
 
 " ---------------------------------------------------------------------
-" default values for global engspchk option variables: {{{2
-if g:cvimsyn == ""
- if expand('$HOME') == ""
-  if has("win32") || has("win64") || has("win95")
-   let g:cvimsyn= 'c:\.vim\CVIMSYN'
-  endif
- else
-  let g:cvimsyn= expand('$HOME')."/.vim/CVIMSYN"
- endif
-endif
-
-" ---------------------------------------------------------------------
 " Convert global to local variables {{{2
 let b:spchkaltright    = exists("g:spchkaltright")?    g:spchkaltright    : 0
 let b:spchkacronym     = exists("g:spchkacronym")?     g:spchkacronym     : 0
-let b:cvimsyn          = exists("g:cvimsyn")?          g:cvimsyn          : $CVIMSYN
+call s:SpchkSetCvimsyn()
+let b:cvimsyn          = g:cvimsyn
 let b:DrChipTopLvlMenu = exists("g:DrChipTopLvlMenu")? g:DrChipTopLvlMenu : ""
 let b:spchkautonext    = exists("g:spchkautonext")?    g:spchkautonext    : 0
 let b:spchkdialect     = exists("g:spchkdialect")?     g:spchkdialect     : "usa"
@@ -381,13 +454,33 @@ endif
 
 " ---------------------------------------------------------------------
 
-" HLTEST: tests if a highlighting group has been set up {{{2
-fun! s:HLTEST(hlname)
+" HLTest: tests if a highlighting group has been set up {{{2
+fun! s:HLTest(hlname)
+"  call Dfunc("HLTest(hlname<".a:hlname.">)")
+
   let id_hlname= hlID(a:hlname)
-  let fg_hlname= synIDattr(synIDtrans(hlID(a:hlname)),"fg")
-  if id_hlname == 0 || fg_hlname == 0 || fg_hlname == -1
+"  call Decho("hlID(".a:hlname.")=".id_hlname)
+  if id_hlname == 0
+"   call Dret("HLTest 0")
    return 0
   endif
+
+  let id_trans = synIDtrans(id_hlname)
+"  call Decho("id_trans=".id_trans)
+  if id_trans == 0
+"   call Dret("HLTest 0")
+   return 0
+  endif
+
+  let fg_hlname= synIDattr(id_trans,"fg")
+  let bg_hlname= synIDattr(id_trans,"bg")
+"  call Decho("fg_hlname<".fg_hlname."> bg_hlname<".bg_hlname.">")
+
+  if fg_hlname == "" && bg_hlname == ""
+"   call Dret("HLTest 0")
+   return 0
+  endif
+"  call Dret("HLTest 1")
   return 1
 endfun
 
@@ -396,8 +489,8 @@ endfun
 " check if user has specified a Dialect highlighting group.
 " If not, this script will highlight-link it to a Warning highlight group.
 " If that hasn't been defined, then this script will define it.
-if !s:HLTEST("Dialect")
- if !s:HLTEST("Warning")
+if !s:HLTest("Dialect")
+ if !s:HLTest("Warning")
   hi Warning term=NONE cterm=NONE gui=NONE ctermfg=black ctermbg=yellow guifg=black guibg=yellow
  endif
  hi link Dialect Warning
@@ -406,8 +499,8 @@ endif
 " check if user has specified a RareWord highlighting group
 " If not, this script will highlight-link it to a Warning highlight group.
 " If that hasn't been defined, then this script will define it.
-if  !<SID>HLTEST("RareWord")
- if !<SID>HLTEST("Warning")
+if  !<SID>HLTest("RareWord")
+ if !<SID>HLTest("Notice")
   hi Notice term=NONE cterm=NONE gui=NONE ctermfg=black ctermbg=cyan guifg=black guibg=cyan
  endif
  hi link RareWord Notice
@@ -444,19 +537,44 @@ call <SID>SaveMap("n",s:usermaplead,"eS")
 " Maps to facilitate entry of new words {{{2
 "  use  temporarily (\et)   remove temporarily (\eT)
 "  save permanently (\es)   remove permanently (\eS)
-nmap <silent> <Leader>et :syn case ignore<CR>:exe "syn keyword GoodWord transparent	" . expand("<cword>")<CR>:syn case match<CR>:if b:spchkautonext<BAR>call <SID>SpchkNxt(1)<BAR>endif<CR>
-nmap <silent> <Leader>eT :syn case ignore<CR>:exe "syn keyword BadWord "	  . expand("<cword>")<CR>:syn case match<CR>
+if !hasmapto('<Plug>Spchket')
+ nmap <unique> <Leader>et <Plug>Spchket
+endif
+nmap <silent> <script> <Plug>Spchket :syn case ignore<CR>:exe "syn keyword GoodWord transparent	" . expand("<cword>")<CR>:syn case match<CR>:if b:spchkautonext<BAR>call <SID>SpchkNxt(0)<BAR>endif<CR>
+
+if !hasmapto('<Plug>SpchkeT')
+ nmap <unique> <Leader>eT <Plug>SpchkeT
+endif
+nmap <silent> <script> <Plug>SpchkeT :syn case ignore<CR>:exe "syn keyword BadWord "	  . expand("<cword>")<CR>:syn case match<CR>
 
 " \es: saves a new word to a user dictionary (b:cvimsyn/engspchk.usr). {{{2
 "      Uses vim-only functions to do save, thereby avoiding external programs
-nmap <silent> <Leader>es    :call <SID>SpchkSave(expand("<cword>"))<CR>
-nmap <silent> <Leader>eS    :call <SID>SpchkRemove(expand("<cword>"))<CR>
+if !hasmapto('<Plug>Spchkes')
+ nmap <unique> <Leader>es <Plug>Spchkes
+endif
+nmap <silent> <script> <Plug>Spchkes    :call <SID>SpchkSave(expand("<cword>"))<CR>
+ 
+if !hasmapto('<Plug>SpchkeS')
+ nmap <unique> <Leader>eS <Plug>SpchkeS
+endif
+nmap <silent> <script> <Plug>eS    :call <SID>SpchkRemove(expand("<cword>"))<CR>
 
 " \ed: toggle between Dialect->Warning/Error {{{2
 " \ee: end engspchk
-nmap <silent> <Leader>ed	:call <SID>SpchkToggleDialect()<CR>
-nmap <silent> <Leader>er	:call <SID>SpchkToggleRareWord()<CR>
-nmap <silent> <Leader>ee	:call <SID>SpchkEnd()<CR><bar>:redraw!<CR>
+if !hasmapto('<Plug>Spchked')
+ nmap <unique> <Leader>ed <Plug>Spchked
+endif
+nmap <silent> <script> <Plug>Spchked	:call <SID>SpchkToggleDialect()<CR>
+ 
+if !hasmapto('<Plug>Spchker')
+ nmap <unique> <Leader>er <Plug>Spchker
+endif
+nmap <silent> <script> <Plug>Spchker	:call <SID>SpchkToggleRareWord()<CR>
+ 
+if !hasmapto('<Plug>Spchkee')
+ nmap <unique> <Leader>ee <Plug>Spchkee
+endif
+nmap <silent> <script> <Plug>Spchkee	:call <SID>SpchkEnd()<CR><bar>:redraw!<CR>
 
 " mouse stuff: {{{2
 if b:spchkmouse > 0
@@ -498,22 +616,28 @@ syn case ignore
 " Language Specials {{{2
 " Ignore upper/lower case
 " For non-English, allow accented (8-bit) characters as keywords
-if b:spchklang !=? "^eng"
+if b:spchklang =~? "^eng"
+" call Decho("Language Special<eng> : b:spchkpunc=".b:spchkpunc)
+ if b:spchkpunc != 0
+  " These patterns are thanks to Steve Hall
+  " Flag as error a non-capitalized word after ellipses
+  syn match GoodWord	"\.\.\. \{0,2}\l\@="
+  " but not non-capitalized word after ellipses plus period
+  syn match BadWord "\.\.\.\. \{0,2}\l"
+ 
+  " non-lowercased end-of-word problems
+  " required: period/question-mark/exclamation-mark
+  " optional: double/single quote
+  " required: return/return-linefeed/space/two spaces
+  " required: lowercase letter
+  syn match BadWord "[.?!][\"']\=[\r\n\t ]\+\l"
+ endif
+elseif b:spchklang =~? "^fr"
+" call Decho("Language Special<".b:spchklang."> isk has no -")
+ setlocal isk=48-57,_,65-90,_,97-122,128-255
+else
+" call Decho("Language Special<".b:spchklang."> isk has -")
  setlocal isk=45,48-57,_,65-90,_,97-122,128-255
-
-elseif b:spchkpunc != 0
- " These patterns are thanks to Steve Hall
- " Flag as error a non-capitalized word after ellipses
- syn match GoodWord	"\.\.\. \{0,2}\l\@="
- " but not non-capitalized word after ellipses plus period
- syn match BadWord "\.\.\.\. \{0,2}\l"
-
- " non-lowercased end-of-word problems
- " required: period/question-mark/exclamation-mark
- " optional: double/single quote
- " required: return/return-linefeed/space/two spaces
- " required: lowercase letter
- syn match BadWord "[.?!][\"']\=[\r\n\t ]\+\l"
 endif
 
 " ---------------------------------------------------------------------
@@ -521,7 +645,7 @@ endif
 
 if b:cvimsyn == ""
  echoerr 'Please set either g:cvimsyn (vim) or $CVIMSYN (environment)'
- exit
+ finish
 endif
 
 "call Decho("attempt to find dictionaries: spchklang<".b:spchklang.">")
@@ -579,37 +703,50 @@ endif
 " clusters.  If your favorite syntax comments are not included, send a note
 let s:incomment= 0
 if     &ft == "amiga"
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incomment=1
+" call Decho("amiga: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ let s:incomment=1
 elseif &ft == "bib"
-  syn cluster bibVarContents     	contains=GoodWord,BadWord
-  syn cluster bibCommentContents 	contains=GoodWord,BadWord
-  let s:incomment=1
+" call Decho("bib: GoodWord, BadWord added to Spell cluster")
+ syn cluster bibVarContents     	contains=GoodWord,BadWord
+ syn cluster bibCommentContents 	contains=GoodWord,BadWord
+ let s:incomment=1
 elseif &ft == "c" || &ft == "cpp"
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incomment=1
+" call Decho("c: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ let s:incomment=1
 elseif &ft == "csh"
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incomment=1
+"  call Decho("csh: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ let s:incomment=1
 elseif &ft == "dcl"
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incomment=1
+" call Decho("dcl: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ let s:incomment=1
 elseif &ft == "fortran"
-  syn cluster fortranCommentGroup	add=GoodWord,BadWord
-  syn match   fortranGoodWord contained	"^[Cc]\>"
-  syn cluster fortranCommentGroup	add=fortranGoodWord
-  hi link fortranGoodWord fortranComment
-  let s:incomment=1
-elseif &ft == "sh" || &ft == "ksh" || &ft == "bash"
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incomment=1
+" call Decho("fortran: GoodWord, BadWord added to Spell cluster")
+ syn cluster fortranCommentGroup	add=GoodWord,BadWord
+ syn match   fortranGoodWord contained	"^[Cc]\>"
+ syn cluster fortranCommentGroup	add=fortranGoodWord
+ hi link fortranGoodWord fortranComment
+ let s:incomment=1
+elseif &ft == "mail"
+" call Decho("mail: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ let s:incomment=2
+elseif &ft == "sh"
+" call Decho("sh: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ let s:incomment=1
 elseif &ft == "tex"
-  syn cluster Spell		add=GoodWord,BadWord
-  syn cluster texMatchGroup		add=GoodWord,BadWord
-  let s:incomment=2
+" call Decho("tex: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ syn cluster texMatchGroup		add=GoodWord,BadWord
+ let s:incomment=2
 elseif &ft == "vim"
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incomment=1
+" call Decho("vim: GoodWord, BadWord added to Spell cluster")
+ syn cluster Spell		add=GoodWord,BadWord
+ let s:incomment=1
 endif
 "call Decho("s:incomment=".s:incomment." ft=".&ft)
 
@@ -635,7 +772,7 @@ if s:incomment == 0
 
  silent! let has_cluster= s:ChkForCluster("Spell")
  if has_cluster
-"  call Decho("inferred @Spell: add GoodWord,BadWord to Spell cluster")
+"  call Decho("inferred @Spell: add GoodWord,BadWord to Spell cluster; setting s:incomment=".s:incomment)
   syn cluster Spell				add=GoodWord,BadWord
   let s:incomment=1
  else
@@ -669,7 +806,7 @@ endif
 "         the dictionary file itself may override this with a
 "         leading "syn case match".
 fun! s:SpchkLoadDictionary(reqd,lang,dict)
-"  call Dfunc("SpchkLoadDictionary(reqd=".a:reqd." lang<".a:lang."> dict<".a:dict.">")
+"  call Dfunc("SpchkLoadDictionary(reqd=".a:reqd." lang<".a:lang."> dict<".a:dict.">)")
 "  let loadtime= localtime()		" Decho
 
   " set up short and long names
@@ -718,8 +855,8 @@ call s:SpchkLoadDictionary(0,b:spchklang,"proper")
 call s:SpchkLoadDictionary(0,b:spchklang,"rare")
 call s:SpchkLoadDictionary(0,b:spchklang,"dialect")
 call s:SpchkLoadDictionary(0,b:spchklang,"proj")
-call s:SpchkLoadDictionary(1,b:spchklang,"usr")
 call s:SpchkLoadDictionary(2,b:spchklang,"dict")
+call s:SpchkLoadDictionary(1,b:spchklang,"usr")
 
 " Resume Case Sensitivity
 syn case match
@@ -734,6 +871,7 @@ syn case match
 "        1       BadWords matched inside @Spell, etc highlighting clusters
 "        2       both #0 and #1
 if s:incomment == 0 || s:incomment == 2 || b:spchknonhl
+" call Decho("s:incomment=".s:incomment.": BadWords match outside syntax")
  if b:spchklang == "eng"
   syn match BadWord	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect
  else
@@ -741,6 +879,7 @@ if s:incomment == 0 || s:incomment == 2 || b:spchknonhl
  endif
 endif
 if s:incomment == 1 || s:incomment == 2
+" call Decho("s:incomment=".s:incomment.": BadWords match inside syntax (contained)")
  if b:spchklang == "eng"
   syn match BadWord contained	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect
   syn cluster Spell add=Dialect,RareWord
@@ -844,8 +983,16 @@ fun! <SID>SpchkRemove(killword)
   exe "syn keyword BadWord ".a:killword
   syn case match
 endfun
-nmap <silent> <Leader>en	:call <SID>SpchkNxt(1)<CR>
-nmap <silent> <Leader>ep	:call <SID>SpchkPrv(1)<CR>
+
+if !hasmapto('<Plug>SpchkNxt')
+ nmap <unique> <Leader>en	<Plug>SpchkNxt
+endif
+nmap <silent> <script> <Plug>SpchkNxt	:call <SID>SpchkNxt(1)<CR>
+
+if !hasmapto('<Plug>SpchkPrv')
+ nmap <unique> <Leader>ep	<Plug>SpchkPrv
+endif
+nmap <silent> <script> <Plug>SpchkPrv	:call <SID>SpchkPrv(1)<CR>
 
 " ignores people's middle-name initials
 syn match   GoodWord	"\<[A-Z]\."
@@ -873,6 +1020,10 @@ fun! <SID>SpchkNxt(autofix)
       if curcol == prvcol
 	   echo "at end-of-file"
 "	   call Decho("at end-of-file")
+	   if exists("b:spchksaveposn")
+"	   	call Decho("unlet b:spchksaveposn")
+	    unlet b:spchksaveposn
+	   endif
        break
       endif
     endif
@@ -931,7 +1082,10 @@ fun! <SID>SpchkPrv(autofix)
 "  call Dret("SpchkPrv : <".expand("<cword>").">")
 endfunction
 
-map <silent> <Leader>ea :call <SID>SpchkAlternate(expand("<cword>"))<CR>
+if !hasmapto('<Plug>SpchkAlternate')
+ map <silent> <Leader>ea <Plug>SpchkAlternate
+endif
+map <silent> <script> <Plug>SpchkAlternate :call <SID>SpchkAlternate(expand("<cword>"))<CR>
 
 " -----------------------------------------------------------------
 
@@ -945,7 +1099,7 @@ syn match GoodWord "\<\k\+'\%#"
 
 " BuildWordlist: Build the <engspchk.wordlist>
 fun! s:BuildWordlist(cvimsyn,lang,dict)
-" call Dfunc("BuildWordlist(lang<".a:lang."> dict<".a:dict.">")
+"  call Dfunc("BuildWordlist(lang<".a:lang."> dict<".a:dict.">")
 
   " set up short and long names
   let shortname= a:lang."spchk.".a:dict
@@ -954,18 +1108,28 @@ fun! s:BuildWordlist(cvimsyn,lang,dict)
   " preferentially load from current directory
   if filereadable(shortname)
    let fullname= shortname
-"  call Decho("will build wordlist with <".fullname.">")
+"   call Decho("will build wordlist with <".fullname.">")
   endif
   if filereadable(fullname)
-   exe "silent 0r ".fullname
+"   call Decho("<".fullname.". is readable; now appending to wordlist")
+   $
+   exe "silent r ".fullname
+   $
+"   call Dret("BuildWordlist 1")
+   return 1
   endif
-" call Dret("BuildWordlist")
+
+  " unable to load requested dictionary
+  $
+"  call Dret("BuildWordlist 0")
+  return 0
 endfun
 
 " ---------------------------------------------------------------------
 " SpchkAlternate: handle words that are close in spelling {{{2
 fun! <SID>SpchkAlternate(wrd)
 "  call Dfunc("SpchkAlternate(wrd<".a:wrd.">)")
+   call s:SpchkSavePosn()
 
   " can't provide alternative spellings without agrep
   if !executable("agrep")
@@ -986,6 +1150,7 @@ fun! <SID>SpchkAlternate(wrd)
 "  call Decho("options: lang<".spchklang."> cvimsyn<".cvimsyn."> altright=".spchkaltright." dialect<".spchkdialect.">")
 
   silent! set isk-=#
+  norm! "_yiw
   if exists("g:spchkwholeword")
 "   call Decho("using g:spchkwholeword=".g:spchkwholeword)
    exe "match PreProc '\\%".line(".")."l\\%".col('.')."c\\k\\+'"
@@ -1004,15 +1169,16 @@ fun! <SID>SpchkAlternate(wrd)
 	 put! ='Alternates for'
 	 2d
 	 put =' <'.a:wrd.'>'
+	 exe "silent! norm! \<Esc>"
 	else
-     exe "norm! \<c-w>bG0DAAlternate<".a:wrd.">: \<Esc>"
+     exe "norm! \<c-w>bG0DAAlternates<".a:wrd.">: \<Esc>"
 	endif
 
   elseif filereadable(cvimsyn."/".spchklang."spchk.wordlist")
     " utilize previously generated <engspchk.wordlist>
 "	call Decho("| utilize previously generated ".spchklang."spchk.wordlist")
 
-    " Create a one line window to hold dictionaries during conversion
+    " Create a window to hold dictionaries during conversion
     let s:winnr= winnr()
 	if spchkaltright > 0
      exe "vertical bo ".spchkaltright."new"
@@ -1029,7 +1195,7 @@ fun! <SID>SpchkAlternate(wrd)
 	 put =' <'.a:wrd.'>'
 	else
 	 setlocal winheight=1
-     exe "norm! \<c-w>bG0DAAlternate<".a:wrd.">: \<Esc>"
+     exe "norm! \<c-w>bG0DAAlternates<".a:wrd.">: \<Esc>"
 	endif
 
   else
@@ -1067,25 +1233,31 @@ fun! <SID>SpchkAlternate(wrd)
 	call s:BuildWordlist(cvimsyn,spchklang,"dict")
 	call s:BuildWordlist(cvimsyn,spchklang,"usr")
 	call s:BuildWordlist(cvimsyn,spchklang,"proj")
-	let firstline= line("$")
-	call s:BuildWordlist(cvimsyn,spchklang,"dialect")
-	put =
-	let lastline = line("$")
-	call s:BuildWordlist(cvimsyn,spchklang,"rare")
+	put
+	let firstline   = line("$")
+	let diddialect  = s:BuildWordlist(cvimsyn,spchklang,"dialect")
+	let lastline    = line("$")
+	let didrareword = s:BuildWordlist(cvimsyn,spchklang,"rare") 
 	call s:BuildWordlist(cvimsyn,spchklang,"proper")
-
-	" remove non-selected dialect
-"	call Decho("remove non-selected dialect")
-	exe firstline.';/? "'.spchkdialect.'"/d'
-	/^\(elseif\|endif\)/
-	exe '.,'.lastline."d"
 
     " Remove non-dictionary lines and make it one word per line
 	"   Keep RareWords
 	"   Remove Dialect, comments, etc
-"	call Decho("remove non-dictionary lines")
+"	call Decho("doing conversion")
     echo "Doing conversion..."
-	silent! %s/^syn\s*keyword\s*\zsRareWord/GoodWord/
+
+	" remove non-selected dialect
+	if diddialect
+"	 call Decho("remove non-selected dialect<".spchkdialect."> in lines".firstline."-".lastline)
+	 exe firstline.';/? "'.spchkdialect.'"/d'
+	 /^\(elseif\|endif\)/
+	 exe '.,'.lastline."d"
+	endif
+
+	if didrareword
+	 silent! %s/^syn\s*keyword\s*\zsRareWord/GoodWord/
+	endif
+
     silent v/^syn keyword GoodWord \(transparent\|contained\)/d
     %s/^syn keyword GoodWord \(transparent\|contained\)\s\+//
 "	call Decho("make it one word per line")
@@ -1097,9 +1269,12 @@ fun! <SID>SpchkAlternate(wrd)
 	endif
     echo "Writing ".cvimsyn."/".spchklang."spchk.wordlist"
     exe "w! ".cvimsyn."/".spchklang."spchk.wordlist"
-    silent %d
 	" re-use same buffer for Alternate spellings
-    silent exe "norm! $oAlternate<".a:wrd.">: \<Esc>"
+	" building wordlist
+    silent %d
+	put! ='Alternates for'
+	2d
+	put =' <'.a:wrd.'>'
 	norm! 0
     let &ul = ulkeep
     let &ffs= ffskeep
@@ -1157,12 +1332,12 @@ fun! <SID>SpchkAlternate(wrd)
    "                 -i  case insensitive search enabled
    "                 -w  search for pattern as a word (surrounded by non-alpha)
    "                 -S2 set cost of a substitution to 2
-"    call Decho("running: agrep -2 -i -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\"")
-    exe  "silent r! agrep -2 -i -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\""
+"    call Decho("running: agrep -2 -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\"")
+    exe  "silent r! agrep -2 -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\""
   else
    " handle two-letter words
-"   call Decho("running: agrep -1 -i -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\"")
-   exe "silent r! agrep -1 -i -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\""
+"   call Decho("running: agrep -1 -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\"")
+   exe "silent r! agrep -1 -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\""
   endif
   if spchkaltright > 0
    3
@@ -1245,23 +1420,40 @@ endfun
 
 " ---------------------------------------------------------------------
 " SpchkMouse: {{{2
+"    mode==0: leftmouse
+"        ==1:  middlemouse
+"        ==2:  rightmouse
 fun! <SID>SpchkMouse(mode)
 "  call Dfunc("SpchkMouse(mode=".a:mode.")")
 
   if exists("s:spchkaltwin") && bufnr("%") == s:spchkaltwin
    " leftmouse and alternate window exists: (cursor must be in alternate-words window)
-   "              change word and open alternate-spelling window on new word
+   " change word and open alternate-spelling window on new word
 "   call Decho("SpchkMouse(mode=".a:mode.") in alternate-words window")
-   call s:SpchkChgWord(0)
-   if synIDtrans(synID(line("."),col("."),1)) == s:errid
-    call s:SpchkAlternate(expand("<cword>"))
+   if a:mode == 0 || a:mode == 2
+    call s:SpchkChgWord(0)
+    if synIDtrans(synID(line("."),col("."),1)) == s:errid
+     call s:SpchkAlternate(expand("<cword>"))
+    endif
+   elseif a:mode == 1
+   	" if in alternate-spellings window, and the middlemouse was clicked:
+	"   exit alternate-words window
+	"   restore cursor position
+	"   put word into temporary dictionary
+	"   goto next spelling error (if any)
+    call s:SpchkExitChgWord()
+    call s:SpchkRestorePosn()
+	norm \et
+    if synIDtrans(synID(line("."),col("."),1)) == s:errid
+     call s:SpchkAlternate(expand("<cword>"))
+	endif
    endif
 
-  else " cursor in non-alternate-words window
+  else " cursor in non-alternate-words window (ie. the text window)
 "   call Decho("SpchkMouse(mode=".a:mode.") in normal window")
    if exists("s:spchkaltwin")
 "   	call Decho("but s:spchkaltwin exists")
-	" move cursor to bottom/right window (ie. the change window)
+	" move cursor to bottom/right window (ie. the alternate-words window)
    	wincmd b
     call s:SpchkExitChgWord()
    endif
@@ -1300,8 +1492,7 @@ fun! <SID>SpchkMouse(mode)
 
    endif
 
-   " save position, call SpchkAlternate() if already on Error word
-   call s:SpchkSavePosn()
+   " call SpchkAlternate() if already on Error word
    if synIDtrans(synID(line("."),col("."),1)) == s:errid
     call s:SpchkAlternate(expand("<cword>"))
    endif
@@ -1455,14 +1646,16 @@ syn match spchkModeline 	"^.*\<spchk:.*$"	contains=spchkML,spchkMLop
 syn match spchkML			"\<spchk\>"			contained
 syn match spchkMLop			"[:=]"				contained skipwhite nextgroup=spchkMLsetting
 syn match spchkMLsetting	"\k\+"				contained contains=spchkMLoption
+syn match spchkVimModeline	"^\s*%\s*vim:.*$"
 syn keyword spchkMLoption contained cvimsyn               acronym       autonext      mouse      punc        lang
 syn keyword spchkMLoption contained DrChipTopLvlMenu      altright      dialect       nonhl      silent      proj
 syn keyword spchkMLoption contained spchkcvimsyn          spchkacronym  spchkautonext spchkmouse spchkpunc   spchklang
 syn keyword spchkMLoption contained spchkDrChipTopLvlMenu spchkaltright spchkdialect  spchknonhl spchksilent spchkproj
-hi link spchkML			PreProc
-hi link spchkMLop		Operator
-hi link spchkMLoption	Identifier
-hi link spchkModeline	Comment
+hi link spchkML				PreProc
+hi link spchkMLop			Operator
+hi link spchkMLoption		Identifier
+hi link spchkModeline		Comment
+hi link spchkVimModeline	Comment
 
 "  Done Loading Message:   {{{1
 if !b:spchksilent
