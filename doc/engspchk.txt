@@ -1,0 +1,72 @@
+*engspchk.txt*	English Spelling Checker		January 18, 2002
+
+Authors:  Charles E. Campbell, Jr.  <cec@NgrOyphSon.gPsfAc.nMasa.gov>
+	  (remove NOSPAM from Dr. Campbell's email before using)
+
+==============================================================================
+1. Contents						*engspchk-contents*
+
+	1. Contents...................................: |engspchk-contents|
+	2. English Spelling Checker Manual............: |engspchk|
+
+==============================================================================
+2. English Spelling Checker Manual					*engspchk*
+													*engspchk-manual*
+
+ ENVIRONMENT VARIABLES
+  CVIMSYN : points to a directory holding the user word database <usr_engspchk.vim>
+            The optional file <wb1913_engspchk.vim>, which contains words
+			from Webster's 1913 Dictionary that aren't in engspchk itself,
+			if present in the CVIMSYN directory, will also be loaded.
+
+ INCLUDED MAPS
+  \et : add  word under cursor into database (temporarily - ie. just this file)
+  \es : save word under cursor into database (permanently)  (requires $CVIMSYN)
+  \en : move cursor to the next     spelling error
+  \ep : move cursor to the previous spelling error
+  \ea : look for alternative spellings of word under cursor
+
+ MAPS FOR ALTERNATIVES WINDOW ONLY
+  <cr> : on alternatives line, will put word under cursor in
+         searchword's stead
+  :q   : will quit the alternate-word window
+  
+  In order to generate alternatives engspchk uses agrep, source code for which
+  can be found at:   ftp://sunsite.unc.edu/pub/Linux/utils/text/agrep-2.04.tar.Z
+  Windows binary at: http://www.tgries.de/agrep
+
+ USAGE
+  Simply source the file in.  It does *not* do a "syntax clear", so that means
+  that you can usually just source it in on top of other highlighting.
+
+  In order to spell-check comments in various languages, the language's
+  vim syntax file needs to have its comment syntax group contain a cluster.
+  Engspchk can then add itself to that cluster.  The vim syntax languages
+  that currently support this include:
+
+	amiga           c               dcl             latex           tex
+	bash            cpp             fortran         sh              vim
+	bib             csh             ksh
+
+  If there's a language for which you'd like to have comments spelling-checked
+  that isn't on the above list, please contact that vim syntax file's maintainer
+  and ask for the support mentioned above.
+
+ OTHER LANGUAGES
+  There are versions of this script for other languages.  If you come
+  up with a version for another language, please let me know where on
+  the web it is so that I can help make it known.
+
+    Dutch    : http://vim.sourceforge.net/tips/tip.php?tip_id=161
+    German   : http://jeanluc-picard.de/vim/gerspchk/gerspchk.vim.gz
+    Hungarian: http://vim.sourceforge.net/scripts/script.php?script_id=22
+    Yiddish  : http://www.cs.uky.edu/~raphael/yiddish/vim.tar.gz
+
+  CREATING YOUR OWN LANGUAGE SPELLING CHECKER
+   There is also a create script (http://jeanluc-picard.de/vim/gerspchk/create)
+   that uses the Bourne shell to merge engspchk with a dictionary.  You can
+   often find a dictionary (actually, its just a word list) on the web.
+   Please let me know if you create such a script and make it available on
+   the web so that I can mention it to others.
+
+vim:tw=78:ts=8:ft=help
