@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Feb 11, 2005
-" Version:     60
+" Last Change: Feb 14, 2005
+" Version:     61
 " License:     GPL (Gnu Public License)
 "
 " GetLatestVimScripts: :AutoInstall: 195 1 engspchk.vim
@@ -150,7 +150,7 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
- let s:spchkversion             = "v60"
+ let s:spchkversion             = "v61"
  let s:loaded_{b:spchkfile}spchk= s:spchkversion
  let s:engspchk_loadcnt         =  0
 
@@ -689,8 +689,10 @@ if b:spchkmouse > 0
  nnoremap <silent> <leftmouse>    <leftmouse>:call <SID>SpchkMouse(0)<CR>
  nnoremap <silent> <middlemouse>  <leftmouse>:call <SID>SpchkMouse(1)<CR>
  nnoremap <silent> <rightmouse>   <leftmouse>:call <SID>SpchkRightMouse()<CR>
- " insure that the paste buffer has nothing in it
- let @*=""
+ if has("clipboard")
+  " insure that the paste buffer has nothing in it
+  let @*=""
+ endif
 endif
 
 " ---------------------------------------------------------------------
@@ -815,52 +817,52 @@ if exists("b:spchk_incluster")
 else
  let s:incluster= 0
  if     &ft == "amiga"
- " call Decho("amiga: GoodWord, BadWord added to Spell cluster")
+" " call Decho("amiga: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell		add=GoodWord,BadWord
   let s:incluster=1
  elseif &ft == "bib"
- " call Decho("bib: GoodWord, BadWord added to Spell cluster")
+" " call Decho("bib: GoodWord, BadWord added to Spell cluster")
   syn cluster bibVarContents     	contains=GoodWord,BadWord
   syn cluster bibCommentContents 	contains=GoodWord,BadWord
   let s:incluster=1
  elseif &ft == "c" || &ft == "cpp"
- " call Decho("c: GoodWord, BadWord added to Spell cluster")
+" " call Decho("c: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell		add=GoodWord,BadWord
   let s:incluster=1
  elseif &ft == "csh"
- "  call Decho("csh: GoodWord, BadWord added to Spell cluster")
+" "  call Decho("csh: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell		add=GoodWord,BadWord
   let s:incluster=1
  elseif &ft == "dcl"
- " call Decho("dcl: GoodWord, BadWord added to Spell cluster")
+" " call Decho("dcl: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell		add=GoodWord,BadWord
   let s:incluster=1
  elseif &ft == "fortran"
- " call Decho("fortran: GoodWord, BadWord added to Spell cluster")
+" " call Decho("fortran: GoodWord, BadWord added to Spell cluster")
   syn cluster fortranCommentGroup	add=GoodWord,BadWord
   syn match   fortranGoodWord contained	"^[Cc]\>"
   syn cluster fortranCommentGroup	add=fortranGoodWord
   hi link fortranGoodWord fortranComment
   let s:incluster=1
  elseif &ft == "html"
- " call Decho("html: GoodWord, BadWord added to Spell cluster")
+" " call Decho("html: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell			add=GoodWord,BadWord
   let s:incluster=2
  elseif &ft == "mail"
- " call Decho("mail: GoodWord, BadWord added to Spell cluster")
+" " call Decho("mail: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell			add=GoodWord,BadWord
   let s:incluster=2
  elseif &ft == "sh"
- " call Decho("sh: GoodWord, BadWord added to Spell cluster")
+" " call Decho("sh: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell			add=GoodWord,BadWord
   let s:incluster=1
  elseif &ft == "tex"
- " call Decho("tex: GoodWord, BadWord added to Spell cluster")
+" " call Decho("tex: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell			add=GoodWord,BadWord
   syn cluster texMatchGroup	add=GoodWord,BadWord
   let s:incluster=2
  elseif &ft == "vim"
- " call Decho("vim: GoodWord, BadWord added to Spell cluster")
+" " call Decho("vim: GoodWord, BadWord added to Spell cluster")
   syn cluster Spell			add=GoodWord,BadWord
   let s:incluster=1
  endif
@@ -1697,7 +1699,7 @@ fun! <SID>SpchkEnd()
 
   " prevent \ee from "unloading" a buffer where \ec wasn't run
   if !exists("b:engspchk_loaded")
-"   call Dret("SpchkEnd")
+"   call Dret("SpchkEnd : b:engspchk_loaded doesn't exist, so \\ec hasn't run yet")
    return
   endif
 

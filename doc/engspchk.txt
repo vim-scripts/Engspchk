@@ -1,4 +1,4 @@
-*engspchk.txt*	English Spelling Checker   (v60)	Feb 11, 2005
+*engspchk.txt*	English Spelling Checker   (v61)	Mar 14, 2005
 
 Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	(elide NOSPAM from my email before using)
@@ -45,10 +45,10 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 
 	1. Put <engspchk.tar.bz2> into your .vim directory
 	2. bunzip2 engspchk.tar.bz2
-	   tar -oxvf engspchk.tar
-	   (optional) rm engspchk.tar
 	   mv engspchk.tar $HOME/.vim
 	   cd $HOME/.vim
+	   tar -oxvf engspchk.tar
+	   (optional) rm engspchk.tar
 	3. Put into your <.vimrc>:
 	   set nocp
 	   if version >= 600
@@ -90,12 +90,11 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 2.2 GETTING STARTED UNDER WINDOWS		*engspchk-win32*
 
 	1. Download <engspchk.tar.bz2>
-	2. Rename the downloaded file as needed to
-	   engspchk.tar.bz2
+	2. Rename the downloaded file as needed to: engspchk.tar.bz2
 	   (some Win32 tools rename the file, substituting
 	   underscores for periods, adding .php suffix, etc)
-	3. Get windows tools if you don't have them from
-	   http://gnuwin32.sourceforge.net/packages.html
+	3. Get at least the following two windows tools if you don't
+	   already have them from http://gnuwin32.sourceforge.net/packages.html
 	   	bzip2
 		tar
 	4. dos   : move tarball to "somewhere"\vimfiles
@@ -302,6 +301,10 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	    \ej : save   word under cursor into proj dictionary (permanently)
 	    \eJ : remove word under cursor from proj dictionary (permanently)
 
+	    					*engspchk-ev* *engspchk-eV*
+	    \ev : restrict spell checking to a visual-block selected
+	          region of text.  Use V, v, or ctrl-v, then press \ev
+	    \eV : turn visual-block spell-checking off
 
 2.5 Click-N-Fix Maps					*engspchk-clicknfix*
 
@@ -567,6 +570,8 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 ==============================================================================
 4. History						*engspchk-history*
 
+	61    : Feb 14, 2005  * A check is now made for +clipboard before
+				attempting to clear it.
 	60    : Jan 07, 2005  * made a special-case for html to have spell
 				checking both in the @Spell cluster and
 				outside of it.
