@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Jun 14, 2004
-" Version:     56
+" Last Change: Jun 16, 2004
+" Version:     57
 " License:     GPL (Gnu Public License)
 "
 " Help: {{{1
@@ -150,7 +150,7 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
  let s:loaded_{b:spchkfile}spchk=  1
- let s:spchkversion             = 56
+ let s:spchkversion             = 57
  let s:engspchk_loadcnt         =  0
 
  " ---------------------------------------------------------------------
@@ -160,6 +160,12 @@ if !exists("s:loaded_".s:spchkfile."spchk")
   nmap <unique> <Leader>ec <Plug>LoadSpchk
  endif
  nmap <silent> <script> <Plug>LoadSpchk :call <SID>LoadSpchk()<CR>
+
+ " \ev: set up a visual-block for spellchecking {{{2
+ if !hasmapto('<Plug>Spchkev')
+  vmap <unique> <Leader>ev <Plug>Spchkev
+ endif
+ vmap <silent> <script> <Plug>Spchkev    :<c-u>call <SID>SpchkVisBlock(0)<CR>
 
 " ---------------------------------------------------------------------
  " LoadSpchk: set up and actually load <engspchk.vim>
@@ -297,7 +303,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 	   	" make alternate-language menu entry only if its not the default language
         exe 'menu '.g:DrChipTopLvlMenu.'Load\ AltLang\ Spelling\ Checker.Load\ As\ '.Lang.'spchk :call <SID>SpchkAltLang("'.lang.'")'."<cr>"
        endif
-	   exe "com! ".Lang."spchk exe 'normal ".g:mapleader."ee' | let g:spchklang= '".lang."' | normal ".g:mapleader."ec"
+	   exe "com! ".Lang."spchk exe 'normal ".s:usermaplead."ee' | let g:spchklang= '".lang."' | normal ".s:usermaplead."ec"
       endwhile
      endif
 	else
@@ -318,6 +324,35 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 	call s:AltLangMenus(0)
 
 "	call Dret("SpchkAltLang")
+  endfun
+
+  " ---------------------------------------------------------------------
+
+  " SpchkVisBlock: restrict spellchecking to a specific block selected by visual mode
+  fun! s:SpchkVisBlock(mode)
+"    call Dfunc("SpchkVisBlock(mode=".a:mode.")")
+
+    " clear out any previous out-of-visual-block de-Error highlighting
+    silent! syn clear OutOfBlock
+    if a:mode == 1
+     " disable visual-block selected spellchecking
+"    call Dret("SpchkVisBlock")
+	 return
+    endif
+
+    " enable visual-block selected spellchecking
+	" load spellchecker if not already loaded
+	call s:LoadSpchk()
+    let l1 = line("'<")
+    let l2 = line("'>")
+    let c1 = col("'<")
+    let c2 = col("'>")
+    exe 'syn match OutOfBlock "\%<'.l1.'l"'
+    exe 'syn match OutOfBlock "\%>'.l2.'l"'
+    exe 'syn match OutOfBlock "\%<'.c1.'v"'
+    exe 'syn match OutOfBlock "\%>'.c2.'v"'
+
+"    call Dret("SpchkVisBlock")
   endfun
 
   " ---------------------------------------------------------------------
@@ -533,14 +568,15 @@ let b:spchk_restoremap= ""
 call <SID>SaveMap("n",s:usermaplead,"ea")
 call <SID>SaveMap("n",s:usermaplead,"ed")
 call <SID>SaveMap("n",s:usermaplead,"ee")
+call <SID>SaveMap("n",s:usermaplead,"ej")
+call <SID>SaveMap("n",s:usermaplead,"eJ")
 call <SID>SaveMap("n",s:usermaplead,"en")
 call <SID>SaveMap("n",s:usermaplead,"ep")
 call <SID>SaveMap("n",s:usermaplead,"et")
 call <SID>SaveMap("n",s:usermaplead,"eT")
 call <SID>SaveMap("n",s:usermaplead,"es")
 call <SID>SaveMap("n",s:usermaplead,"eS")
-call <SID>SaveMap("n",s:usermaplead,"ej")
-call <SID>SaveMap("n",s:usermaplead,"eJ")
+call <SID>SaveMap("v",s:usermaplead,"eV")
 
 " Maps to facilitate entry of new words {{{2
 "  use  temporarily (\et)   remove temporarily (\eT)
@@ -596,6 +632,18 @@ if !hasmapto('<Plug>Spchkee')
  nmap <unique> <Leader>ee <Plug>Spchkee
 endif
 nmap <silent> <script> <Plug>Spchkee	:call <SID>SpchkEnd()<CR><bar>:redraw!<CR>
+ 
+" \eV: unset visual-block spellchecking (visual mode)
+if !hasmapto('<Plug>SpchkeVvis')
+ vmap <unique> <Leader>eV <Plug>SpchkeVvis
+endif
+vmap <silent> <script> <Plug>SpchkeVvis  :<c-u>call <SID>SpchkVisBlock(1)<CR>
+
+" \eV: unset visual-block spellchecking (normal mode)
+if !hasmapto('<Plug>SpchkeVnrml')
+ nmap <unique> <Leader>eV <Plug>SpchkeVnrml
+endif
+nmap <silent> <script> <Plug>SpchkeVnrml :call <SID>SpchkVisBlock(1)<CR>
 
 " mouse stuff: {{{2
 if b:spchkmouse > 0
@@ -902,18 +950,18 @@ syn case match
 if s:incluster == 0 || s:incluster == 2 || b:spchknonhl
 " call Decho("s:incluster=".s:incluster.": BadWords match outside syntax")
  if b:spchklang == "eng"
-  syn match BadWord	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect
+  syn match BadWord	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect,OutOfBlock
  else
-  syn match BadWord	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect
+  syn match BadWord	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect,OutOfBlock
  endif
 endif
 if s:incluster == 1 || s:incluster == 2
 " call Decho("s:incluster=".s:incluster.": BadWords match inside syntax (contained)")
  if b:spchklang == "eng"
-  syn match BadWord contained	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect
+  syn match BadWord contained	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect,OutOfBlock
   syn cluster Spell add=Dialect,RareWord
  else
-  syn match BadWord contained	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect
+  syn match BadWord contained	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect,OutOfBlock
  endif
 endif
 
@@ -1627,6 +1675,7 @@ fun! <SID>SpchkEnd()
   let &hidden            = b:hidden
   let s:engspchk_loadcnt = s:engspchk_loadcnt - 1
   unlet b:engspchk_loaded b:hidden
+  call s:SpchkVisBlock(1)
 
   " remove engspchk maps
   if s:engspchk_loadcnt <= 0

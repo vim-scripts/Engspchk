@@ -1,4 +1,4 @@
-*engspchk.txt*	English Spelling Checker   (v56)	May 25, 2004
+*engspchk.txt*	English Spelling Checker   (v57)	May 25, 2004
 
 Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	(elide NOSPAM from my email before using)
@@ -517,11 +517,24 @@ EARLIER LANGUAGE SUPPORT				*engspchk-earlylang*
 ==============================================================================
 4. History						*engspchk-history*
 
+	57    : Jun 16, 2004  * bugfix: (thanks to Sergey Markelov) variable-not
+				found message when mapleader not explicitly set
+				now eliminated
+			      * \ev and \eV : enables spell checking just a
+				visual-block selection of text
 	56    : Jun 07, 2004  * \ej and \eJ : enables saving words to and from
 			        engspchk.proj (engspchk's project support)
 			      * loading colorschemes usually wiped out RareWord
 			        and Dialect highlighting.  A CursorHold autocmd
 				is now used to restore such highlighting.
+			      * Usually (although not always), languages want
+				spellchecking confined to certain regions
+				(such as comments and strings).  The latest
+				engspchk does that.  However, the dictionaries
+				need to be changed to support the new feature.
+				The engspchk.dict, etc, already support such
+				changes, but you'll need to get new versions
+				of other dictionaries if you use them.
 	55    : Jun 07, 2004  * Uses "finish" where it used to "exit" in a
 				few places (better error handling)
 			      * <syntax/mail.vim> has mailSubject contain
