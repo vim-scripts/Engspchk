@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Jun 07, 2004
-" Version:     55
+" Last Change: Jun 14, 2004
+" Version:     56
 " License:     GPL (Gnu Public License)
 "
 " Help: {{{1
@@ -63,17 +63,17 @@
 " Included Maps:  maps use <mapleader>, which by default is \ {{{2
 "  \ec : load engspchk
 "  \et : add  word under cursor into database (temporarily - ie. just this file)
-"  \es : save word under cursor into database (permanently)  (requires $CVIMSYN)
+"  \es : save word under cursor into usr  database (permanently)
+"  \ej : save word under cursor into proj database (permanently)
 "  \en : move cursor to the next     spelling error
 "  \ep : move cursor to the previous spelling error
 "  \ea : look for alternative spellings of word under cursor
 "  \ed : toggle Dialect highlighting (Warning/Error)
 "  \ee : end engspchk
-"  \eT : make word under cursor a BadWord (temporarily)
-"        (opposite of \et)
-"  \eS : make word under cursor a BadWord (permanently)  (requires $CVIMSYN)
-"        (opposite of \es)
-"        --removes words from user dictionary, not <*.dict>--
+"  \eT : make word under cursor a BadWord (temporarily, opposite of \et)
+"  \eS : make word under cursor a BadWord (permanently, opposite of \es)
+"        and removes the word from the user dictionary
+"  \eJ : remove word under cursor from project dictionary (permanently)
 "
 " Maps for Alternatives Window Only:
 "  <cr> : on alternatives line, will put word under cursor in
@@ -150,7 +150,7 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
  let s:loaded_{b:spchkfile}spchk=  1
- let s:spchkversion             = 55
+ let s:spchkversion             = 56
  let s:engspchk_loadcnt         =  0
 
  " ---------------------------------------------------------------------
@@ -292,10 +292,12 @@ if !exists("s:loaded_".s:spchkfile."spchk")
        let dictfiles= substitute(dictfiles,pat,'\2','e')
        let lang     = substitute(dictfile,'^.*[/\\]\(.*\)spchk.dict','\1','e')
 "       call Decho("lang<".lang."> dictfile<".dictfile."> dictfiles<".dictfiles.">")
+       let Lang   = substitute(lang,'\(.\)\(.*\)','\u\1\2','e')
        if lang != b:spchklang
-       	let Lang   = substitute(lang,'\(.\)\(.*\)','\u\1\2','e')
+	   	" make alternate-language menu entry only if its not the default language
         exe 'menu '.g:DrChipTopLvlMenu.'Load\ AltLang\ Spelling\ Checker.Load\ As\ '.Lang.'spchk :call <SID>SpchkAltLang("'.lang.'")'."<cr>"
        endif
+	   exe "com! ".Lang."spchk exe 'normal ".g:mapleader."ee' | let g:spchklang= '".lang."' | normal ".g:mapleader."ec"
       endwhile
      endif
 	else
@@ -485,26 +487,30 @@ fun! s:HLTest(hlname)
 endfun
 
 " ---------------------------------------------------------------------
-
-" check if user has specified a Dialect highlighting group.
-" If not, this script will highlight-link it to a Warning highlight group.
-" If that hasn't been defined, then this script will define it.
-if !s:HLTest("Dialect")
- if !s:HLTest("Warning")
-  hi Warning term=NONE cterm=NONE gui=NONE ctermfg=black ctermbg=yellow guifg=black guibg=yellow
- endif
- hi link Dialect Warning
-endif
-
-" check if user has specified a RareWord highlighting group
-" If not, this script will highlight-link it to a Warning highlight group.
-" If that hasn't been defined, then this script will define it.
-if  !<SID>HLTest("RareWord")
- if !<SID>HLTest("Notice")
-  hi Notice term=NONE cterm=NONE gui=NONE ctermfg=black ctermbg=cyan guifg=black guibg=cyan
- endif
- hi link RareWord Notice
-endif
+" SpchkHighlight: define Warning Dialect Notice and RareWord as needed
+fun! s:SpchkHighlight()
+  " check if user has specified a Dialect highlighting group.
+  " If not, this script will highlight-link it to a Warning highlight group.
+  " If that hasn't been defined, then this script will define it.
+  if !s:HLTest("Dialect")
+   if !s:HLTest("Warning")
+    hi Warning term=NONE cterm=NONE gui=NONE ctermfg=black ctermbg=yellow guifg=black guibg=yellow
+   endif
+   hi link Dialect Warning
+  endif
+  
+  " check if user has specified a RareWord highlighting group
+  " If not, this script will highlight-link it to a Warning highlight group.
+  " If that hasn't been defined, then this script will define it.
+  if  !<SID>HLTest("RareWord")
+   if !<SID>HLTest("Notice")
+    hi Notice term=NONE cterm=NONE gui=NONE ctermfg=black ctermbg=cyan guifg=black guibg=cyan
+   endif
+   hi link RareWord Notice
+  endif
+endfun
+call <SID>SpchkHighlight()
+au CursorHold,FocusGained	*	silent call <SID>SpchkHighlight()
 
 " ---------------------------------------------------------------------
 
@@ -533,6 +539,8 @@ call <SID>SaveMap("n",s:usermaplead,"et")
 call <SID>SaveMap("n",s:usermaplead,"eT")
 call <SID>SaveMap("n",s:usermaplead,"es")
 call <SID>SaveMap("n",s:usermaplead,"eS")
+call <SID>SaveMap("n",s:usermaplead,"ej")
+call <SID>SaveMap("n",s:usermaplead,"eJ")
 
 " Maps to facilitate entry of new words {{{2
 "  use  temporarily (\et)   remove temporarily (\eT)
@@ -549,15 +557,28 @@ nmap <silent> <script> <Plug>SpchkeT :syn case ignore<CR>:exe "syn keyword BadWo
 
 " \es: saves a new word to a user dictionary (b:cvimsyn/engspchk.usr). {{{2
 "      Uses vim-only functions to do save, thereby avoiding external programs
+" \eS: remove new word from user dictionary
 if !hasmapto('<Plug>Spchkes')
  nmap <unique> <Leader>es <Plug>Spchkes
 endif
-nmap <silent> <script> <Plug>Spchkes    :call <SID>SpchkSave(expand("<cword>"))<CR>
+nmap <silent> <script> <Plug>Spchkes    :call <SID>SpchkSave(expand("<cword>"),"usr")<CR>
  
 if !hasmapto('<Plug>SpchkeS')
  nmap <unique> <Leader>eS <Plug>SpchkeS
 endif
-nmap <silent> <script> <Plug>eS    :call <SID>SpchkRemove(expand("<cword>"))<CR>
+nmap <silent> <script> <Plug>SpchkeS    :call <SID>SpchkRemove(expand("<cword>"),"usr")<CR>
+
+" \ej: saves a new word to a project dictionary (b:cvimsyn/engspchk.proj). {{{2
+" \eJ: remove new word from project dictionary
+if !hasmapto('<Plug>Spchkej')
+ nmap <unique> <Leader>ej <Plug>Spchkej
+endif
+nmap <silent> <script> <Plug>Spchkej    :call <SID>SpchkSave(expand("<cword>"),"proj")<CR>
+
+if !hasmapto('<Plug>SpchkeJ')
+ nmap <unique> <Leader>eJ <Plug>SpchkeJ
+endif
+nmap <silent> <script> <Plug>SpchkeJ    :call <SID>SpchkRemove(expand("<cword>"),"proj")<CR>
 
 " \ed: toggle between Dialect->Warning/Error {{{2
 " \ee: end engspchk
@@ -599,8 +620,10 @@ if exists("did_install_default_menus") && has("menu")
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep	'.s:usermaplead.'ep'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'et	'.s:usermaplead.'et'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'es	'.s:usermaplead.'es'
+ exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'ej	'.s:usermaplead.'ej'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'eT	'.s:usermaplead.'eT'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eS	'.s:usermaplead.'eS'
+ exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eJ	'.s:usermaplead.'eJ'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Dialect:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'ed	'.s:usermaplead.'ed'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.RareWord:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'er	'.s:usermaplead.'er'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Load\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ec		'.s:usermaplead.'ec'
@@ -701,57 +724,57 @@ endif
 " This can be done only for those syntax files' comment blocks that
 " contains=@cluster.  The code below adds GoodWord and BadWord to various
 " clusters.  If your favorite syntax comments are not included, send a note
-let s:incomment= 0
+let s:incluster= 0
 if     &ft == "amiga"
 " call Decho("amiga: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
- let s:incomment=1
+ let s:incluster=1
 elseif &ft == "bib"
 " call Decho("bib: GoodWord, BadWord added to Spell cluster")
  syn cluster bibVarContents     	contains=GoodWord,BadWord
  syn cluster bibCommentContents 	contains=GoodWord,BadWord
- let s:incomment=1
+ let s:incluster=1
 elseif &ft == "c" || &ft == "cpp"
 " call Decho("c: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
- let s:incomment=1
+ let s:incluster=1
 elseif &ft == "csh"
 "  call Decho("csh: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
- let s:incomment=1
+ let s:incluster=1
 elseif &ft == "dcl"
 " call Decho("dcl: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
- let s:incomment=1
+ let s:incluster=1
 elseif &ft == "fortran"
 " call Decho("fortran: GoodWord, BadWord added to Spell cluster")
  syn cluster fortranCommentGroup	add=GoodWord,BadWord
  syn match   fortranGoodWord contained	"^[Cc]\>"
  syn cluster fortranCommentGroup	add=fortranGoodWord
  hi link fortranGoodWord fortranComment
- let s:incomment=1
+ let s:incluster=1
 elseif &ft == "mail"
 " call Decho("mail: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
- let s:incomment=2
+ let s:incluster=2
 elseif &ft == "sh"
 " call Decho("sh: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
- let s:incomment=1
+ let s:incluster=1
 elseif &ft == "tex"
 " call Decho("tex: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
  syn cluster texMatchGroup		add=GoodWord,BadWord
- let s:incomment=2
+ let s:incluster=2
 elseif &ft == "vim"
 " call Decho("vim: GoodWord, BadWord added to Spell cluster")
  syn cluster Spell		add=GoodWord,BadWord
- let s:incomment=1
+ let s:incluster=1
 endif
-"call Decho("s:incomment=".s:incomment." ft=".&ft)
+"call Decho("s:incluster=".s:incluster." ft=".&ft)
 
 " attempt to infer spellcheck use - is the Spell cluster included somewhere?
-if s:incomment == 0
+if s:incluster == 0
  fun! <SID>ChkForCluster(cname)
 "  call Dfunc("ChkForCluster(cname<".a:cname.">)")
   let keep_rega= @a
@@ -772,9 +795,9 @@ if s:incomment == 0
 
  silent! let has_cluster= s:ChkForCluster("Spell")
  if has_cluster
-"  call Decho("inferred @Spell: add GoodWord,BadWord to Spell cluster; setting s:incomment=".s:incomment)
+"  call Decho("inferred @Spell: add GoodWord,BadWord to Spell cluster; setting s:incluster=".s:incluster)
   syn cluster Spell				add=GoodWord,BadWord
-  let s:incomment=1
+  let s:incluster=1
  else
 "  call Decho("@Spell not used")
  endif
@@ -827,7 +850,13 @@ fun! s:SpchkLoadDictionary(reqd,lang,dict)
     echomsg "Loading  <".shortname.">"
    endif
    syn case ignore
+   if s:incluster == 1
+    com! -nargs=+ GoodWord syn keyword GoodWord transparent contained <args>
+   else
+    com! -nargs=+ GoodWord syn keyword GoodWord transparent <args>
+   endif
    exe "so ".fullname
+   delcommand GoodWord
    if a:reqd == 1
    	" check if writable
     if !filewritable(fullname)
@@ -866,20 +895,20 @@ syn case match
 " The Raison D'Etre! Highlight the BadWords {{{2
 " I've allowed '`- in non-English words
 "
-"    s:incomment
+"    s:incluster
 "        0       BadWords matched outside normally highlighted sections
 "        1       BadWords matched inside @Spell, etc highlighting clusters
 "        2       both #0 and #1
-if s:incomment == 0 || s:incomment == 2 || b:spchknonhl
-" call Decho("s:incomment=".s:incomment.": BadWords match outside syntax")
+if s:incluster == 0 || s:incluster == 2 || b:spchknonhl
+" call Decho("s:incluster=".s:incluster.": BadWords match outside syntax")
  if b:spchklang == "eng"
   syn match BadWord	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect
  else
   syn match BadWord	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect
  endif
 endif
-if s:incomment == 1 || s:incomment == 2
-" call Decho("s:incomment=".s:incomment.": BadWords match inside syntax (contained)")
+if s:incluster == 1 || s:incluster == 2
+" call Decho("s:incluster=".s:incluster.": BadWords match inside syntax (contained)")
  if b:spchklang == "eng"
   syn match BadWord contained	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect
   syn cluster Spell add=Dialect,RareWord
@@ -949,18 +978,26 @@ hi link BadWord Error
 " ==================================================
 
 " SpchkSave: {{{2
-fun! <SID>SpchkSave(newword)
-"  call Dfunc("SpchkSave(newword<".a:newword.">)")
+fun! <SID>SpchkSave(newword,dict)
+"  call Dfunc("SpchkSave(newword<".a:newword.">,dict<".a:dict.">)")
   silent 1sp
-  exe "silent e ".b:cvimsyn."/".b:spchklang."spchk.usr"
-  $put='syn keyword GoodWord transparent	'.a:newword
+  if a:dict == "usr"
+   exe "silent e ".b:cvimsyn."/".b:spchklang."spchk.".a:dict
+  else
+   exe "silent e ".b:spchklang."spchk.".a:dict
+  endif
+  $put='GoodWord	'.a:newword
   let un= bufnr(".")
   silent wq
   if bufexists(un)
    exe "silent bw ".un
   endif
   syn case ignore
-  exe "syn keyword GoodWord transparent ".a:newword
+  if s:incluster == 1
+   exe "syn keyword GoodWord contained transparent ".a:newword
+  else
+   exe "syn keyword GoodWord transparent ".a:newword
+  endif
   syn case match
   if b:spchkautonext
    call s:SpchkNxt(0)
@@ -974,14 +1011,20 @@ endfun
 "              user word per line in <*spchk.usr>.  This function
 "              actually will delete the entire line containing the
 "              new BadWord.
-fun! <SID>SpchkRemove(killword)
+fun! <SID>SpchkRemove(killword,dict)
+"  call Dfunc("SpchkRemove(killword<".a:killword.">,dict<".a:dict.">)")
   silent 1sp
-  exe "silent e ".b:cvimsyn."/".b:spchklang."spchk.usr"
+  if a:dict == "usr"
+   exe "silent e ".b:cvimsyn."/".b:spchklang."spchk.".a:dict
+  else
+   exe "silent e ".b:spchklang."spchk.".a:dict
+  endif
   exe "silent g/".a:killword."/d"
   silent wq
   syn case ignore
   exe "syn keyword BadWord ".a:killword
   syn case match
+"  call Dret("SpchkRemove")
 endfun
 
 if !hasmapto('<Plug>SpchkNxt')
@@ -1255,11 +1298,11 @@ fun! <SID>SpchkAlternate(wrd)
 	endif
 
 	if didrareword
-	 silent! %s/^syn\s*keyword\s*\zsRareWord/GoodWord/
+	 silent! %s/^syn\s*keyword\s*RareWord/GoodWord/
 	endif
 
-    silent v/^syn keyword GoodWord \(transparent\|contained\)/d
-    %s/^syn keyword GoodWord \(transparent\|contained\)\s\+//
+    silent v/^GoodWord\>/d
+    %s/^GoodWord\s\+//
 "	call Decho("make it one word per line")
     silent! exe '%s/\s\+/\r/g'
 	if executable("sort") && has("unix")
@@ -1594,6 +1637,8 @@ fun! <SID>SpchkEnd()
    nunmap <Leader>eT
    nunmap <Leader>es
    nunmap <Leader>eS
+   nunmap <Leader>ej
+   nunmap <Leader>eJ
 
    " restore user map(s), if any
    if b:spchk_restoremap != ""
@@ -1610,8 +1655,10 @@ fun! <SID>SpchkEnd()
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'et'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'es'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'ej'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'eT'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eS'
+    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eJ'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Dialect:\ toggle\ Warning/Error\ highlighting<tab>\ed'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.RareWord:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'er'
     exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Load\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ec'
@@ -1623,6 +1670,10 @@ fun! <SID>SpchkEnd()
    " enable subsequent re-loading of engspchk
    let s:loaded_{b:spchkfile}spchk= 1
   endif
+
+  " restore syntax (as suggested by Bram Moolenaar)
+  let &syntax= &syntax
+
 "  call Dret("SpchkEnd")
 endfun
 

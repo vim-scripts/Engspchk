@@ -1,4 +1,4 @@
-*engspchk.txt*	English Spelling Checker   (v55)	May 25, 2004
+*engspchk.txt*	English Spelling Checker   (v56)	May 25, 2004
 
 Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	(elide NOSPAM from my email before using)
@@ -41,7 +41,7 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 GETTING STARTED UNDER UNIX				*engspchk-start*
 
 	1. Put <engspchk.tar.bz2> into your .vim directory
-	2. bunzip2 engspchk.tar
+	2. bunzip2 engspchk.tar.bz2
 	   tar -oxvf engspchk.tar
 	   (optional) rm engspchk.tar
 	   mv engspchk.tar $HOME/.vim
@@ -268,13 +268,16 @@ VARIABLES CONTROLLING USAGE		*engspchk-var* *engspchk-variable*
 			     If you wish to have rare words show up as Error,
 			     see \er under |engspchk-maps|.
 
-USING ENGSPCHK			*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
+USING ENGSPCHK	*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
 
 	Although the maps as discussed here show a backslash, the actual
 	maps for 6.0 and above use <Leader> (ie. see :help mapleader for more)
 	which allows you to customize the map leader character sequence.  By
 	default, of course, the <Leader> is a backslash.
 
+       				*engspchk-ea* *engspchk-ec* *engspchk-ed*
+				*engspchk-ee* *engspchk-en* *engspchk-ep*
+				*engspchk-er*
 	    \ea : look for alternative spellings of word under cursor
 	    \ec : engspchk's startup map (loads engspchk and dictionaries)
 	    \ed : toggles between Dialect<>Error highlighting for dialect words
@@ -283,10 +286,16 @@ USING ENGSPCHK			*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
 	    \ep : move cursor to the previous spelling error
 	    \er : toggles between RareWord<>Error highlighting for rare words
 
+       						*engspchk-es* *engspchk-eS*
 	    \es : save   word under cursor into user dictionary (permanently)
 	    \et : add    word under cursor into user dictionary (temporarily)
 	    \eS : remove word under cursor from user dictionary (permanently)
 	    \eT : remove word under cursor from user dictionary (temporarily)
+
+       						*engspchk-ej* *engspchk-eJ*
+	    \ej : save   word under cursor into proj dictionary (permanently)
+	    \eJ : remove word under cursor from proj dictionary (permanently)
+
 
 	Click-N-Fix Maps				*engspchk-clicknfix*
 
@@ -339,6 +348,11 @@ USING ENGSPCHK			*engspchk-use* *engspchk-using* *engspchk-map* *engspchk-maps*
 	the \eS map's action is permanent (actually removes the word
 	from the <engspchk.usr> file) whereas the \eT map affects only
 	the current session.
+
+	The \ej and \eJ maps add/remove words from the user's project
+	dictionary, which allows one to customize a dictionary for a
+	specific project (the <engspchk.proj> dictionary normally
+	resides in the current directory).
 
 	The \ee map ends the engspchk operation by turning syntax off
 	and then turning it back on, which should do automatic filetype
@@ -464,7 +478,30 @@ CREATING A NEW VERSION OF ENGSPCHK			*engspchk-newversion*
 	Of course, the appropriate dictionary file (ie., gerspchk.dict) must
 	also be present in the CVIMSYN subdirectory.
 
+CURRENT LANGUAGE SUPPORT				*engspchk-curlang*
+
+	Engspchk now supports modelines which allow individual documents
+	to specify to engspchk/vim what language they're in.  Furthermore,
+	by simply changing the name of engspchk.vim, one may make any
+	language the default language.
+
+	Check links under
+
+	  http://www.erols.com/astronaut/vim/index.html#vimlinks_scripts
+
+	for any of the following dictionaries:
+
+	  Dutch    : (utf8)
+	  English  : (latin1)
+	  Galician
+	  German   : (latin1) (cp1252) (utf8)
+	  Hungarian
+	  Italian  
+	  Russian  : (koi8)
+	  Spanish
+
 EARLIER LANGUAGE SUPPORT				*engspchk-earlylang*
+
 	There are versions of this script for other languages.  If you come
 	up with a version for another language, please let me know where on
 	the web it is so that I can help make it known.  The following
@@ -480,19 +517,24 @@ EARLIER LANGUAGE SUPPORT				*engspchk-earlylang*
 ==============================================================================
 4. History						*engspchk-history*
 
+	56    : Jun 07, 2004  * \ej and \eJ : enables saving words to and from
+			        engspchk.proj (engspchk's project support)
+			      * loading colorschemes usually wiped out RareWord
+			        and Dialect highlighting.  A CursorHold autocmd
+				is now used to restore such highlighting.
 	55    : Jun 07, 2004  * Uses "finish" where it used to "exit" in a
-	                        few places (better error handling)
+				few places (better error handling)
 			      * <syntax/mail.vim> has mailSubject contain
-			        the @Spell cluster, which in turn caused
+				the @Spell cluster, which in turn caused
 				engspchk to assume only Subjects should be
 				spell checked.  An exception is now made.
 	54    : May 25, 2004  * The "-" was removed from iskeyword for French
 				If it should be removed from other languages,
 				please let me know!
 			      * Added <Plug> <unique> hasmapto() handling for
-			        maps
+				maps
 			      * A bug with wordlist generation caused some
-			        words to be dropped that should not have been.
+				words to be dropped that should not have been.
 				Fixed.  I suggest wiping out your old wordlist
 				files (cd $CVIMSYN ; rm *.wordlist) and engspchk
 				will regenerate them the next time they're needed.
