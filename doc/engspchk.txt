@@ -567,10 +567,13 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 ==============================================================================
 4. History						*engspchk-history*
 
+	59    : Nov 10, 2004  * silenced all unmenu operations
+			      * included more has("gui_running") tests for
+				menu handling
 	58    : Jun 18, 2004  * bugfix: modelines now have higher priority
 				than g:... settings
 			      * bugfix: modelines with multiple settings weren't
-			        being highlighted properly.
+				being highlighted properly.
 			      * :(lang)spchk commands for starting engspchk
 				now available with both gvim and vim; ie.
 				:Engspchk  :Nlspchk :Spanspchk :Gerspchk :Frspchk
@@ -587,9 +590,9 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 			      * \ev and \eV : enables spell checking just a
 				visual-block selection of text
 	56    : Jun 07, 2004  * \ej and \eJ : enables saving words to and from
-			        engspchk.proj (engspchk's project support)
+				engspchk.proj (engspchk's project support)
 			      * loading colorschemes usually wiped out RareWord
-			        and Dialect highlighting.  A CursorHold autocmd
+				and Dialect highlighting.  A CursorHold autocmd
 				is now used to restore such highlighting.
 			      * Usually (although not always), languages want
 				spellchecking confined to certain regions
@@ -620,7 +623,7 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 				was failing due to buffer-local
 				variables.  Fixed
 	52    : May 21, 2004  * loads user dictionary last to give it
-	                        highest priority
+				highest priority
 	51    :	May 11,	2004  *	Modified modeline handling so that only
 				supported options are accepted for modeline
 				handling

@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Sep 24, 2004
-" Version:     58
+" Last Change: Dec 15, 2004
+" Version:     59
 " License:     GPL (Gnu Public License)
 "
 " GetLatestVimScripts: :AutoInstall: 195 1 engspchk.vim
@@ -150,7 +150,7 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
- let s:spchkversion             = "v58"
+ let s:spchkversion             = "v59"
  let s:loaded_{b:spchkfile}spchk= s:spchkversion
  let s:engspchk_loadcnt         =  0
 
@@ -312,7 +312,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
       endwhile
      endif
 	else
-	 exe 'unmenu '.g:DrChipTopLvlMenu.'Load\ AltLang\ Spelling\ Checker'
+	 exe 'silent! unmenu '.g:DrChipTopLvlMenu.'Load\ AltLang\ Spelling\ Checker'
 	endif
 
 "    call Dret("AltLangMenus")
@@ -362,15 +362,17 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 
   " ---------------------------------------------------------------------
   " set up DrChipTopLevelMenu {{{2
- if exists("did_install_default_menus") && has("menu")
+ if exists("did_install_default_menus") && has("menu") && has("gui_running")
   if !exists("g:DrChipTopLvlMenu") || g:DrChipTopLvlMenu == ""
    let g:DrChipTopLvlMenu= "DrChip."
   endif
   exe 'menu '.g:DrChipTopLvlMenu.'Load\ Spelling\ Checker<tab>'.s:mapleadstring.'ec	<Leader>ec'
+"  call Decho("installed menu item: Load Spelling Checker")
   call s:AltLangMenus(2)
  else
   call s:AltLangMenus(1)
  endif
+" call Decho("---- END INITIAL PRE-LOADING OF ENGSPCHK ----")
 
  finish  " end pre-load
 endif
@@ -378,6 +380,7 @@ endif
 " ================================
 " Begin Main Loading of Engspchk {{{1
 " ================================
+"call Decho("---- BEGIN ENGSPCHK MAIN LOADING ----")
 
 " ---------------------------------------------------------------------
 "  SpchkModeline: analyzes current line for a spchk: modeline {{{2
@@ -481,9 +484,10 @@ if !b:spchksilent
 endif
 
 " remove "Load Spelling Checker" from menu {{{2
-if exists("did_install_default_menus") && has("menu")
+if exists("did_install_default_menus") && has("menu") && has("gui_running")
  " remove \ec from DrChip menu
- silent! exe 'unmenu '.b:DrChipTopLvlMenu.'Load\ Spelling\ Checker'
+ exe 'silent! unmenu '.b:DrChipTopLvlMenu.'Load\ Spelling\ Checker'
+" call Decho("uninstalled menu item: Load Spelling Checker")
 endif
 
 " check if syntax highlighting is on and, if it isn't, enable it {{{2
@@ -691,7 +695,7 @@ endif
 
 " ---------------------------------------------------------------------
 " DrChip Menu {{{2
-if exists("did_install_default_menus") && has("menu")
+if exists("did_install_default_menus") && has("menu") && has("gui_running")
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Alternative\ spellings<tab>'.s:mapleadstring.'ea		'.s:usermaplead.'ea'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ next\ spelling\ error<tab>'.s:mapleadstring.'en	'.s:usermaplead.'en'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep	'.s:usermaplead.'ep'
@@ -706,6 +710,7 @@ if exists("did_install_default_menus") && has("menu")
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Load\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ec		'.s:usermaplead.'ec'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.End\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ee		'.s:usermaplead.'ee'
  exe 'menu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Help<tab>\ 		:help engspchk<cr>'
+" call Decho("installed menu items: spchk.Save, Remove, Dialect, Load, End, etc")
 endif
 
 " ---------------------------------------------------------------------
@@ -836,20 +841,20 @@ elseif &ft == "fortran"
  let s:incluster=1
 elseif &ft == "mail"
 " call Decho("mail: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
+ syn cluster Spell			add=GoodWord,BadWord
  let s:incluster=2
 elseif &ft == "sh"
 " call Decho("sh: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
+ syn cluster Spell			add=GoodWord,BadWord
  let s:incluster=1
 elseif &ft == "tex"
 " call Decho("tex: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
- syn cluster texMatchGroup		add=GoodWord,BadWord
+ syn cluster Spell			add=GoodWord,BadWord
+ syn cluster texMatchGroup	add=GoodWord,BadWord
  let s:incluster=2
 elseif &ft == "vim"
 " call Decho("vim: GoodWord, BadWord added to Spell cluster")
- syn cluster Spell		add=GoodWord,BadWord
+ syn cluster Spell			add=GoodWord,BadWord
  let s:incluster=1
 endif
 "call Decho("s:incluster=".s:incluster." ft=".&ft)
@@ -1752,7 +1757,7 @@ fun! <SID>SpchkEnd()
    if exists("b:spchk_restoremap") && b:spchk_restoremap != ""
 "   	call Decho("restoring user maps, if any")
     exe b:spchk_restoremap
-    unlet b:spchk_restoremap
+    silent! unlet b:spchk_restoremap
    endif
 
    " remove menu entries
@@ -1760,21 +1765,23 @@ fun! <SID>SpchkEnd()
 "   	call Decho("remove menu entries")
     exe 'menu '.b:DrChipTopLvlMenu.'Load\ Spelling\ Checker<tab>'.s:mapleadstring.'ec	<Leader>ec'
 
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Alternative\ spellings<tab>'.s:mapleadstring.'ea		'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ next\ spelling\ error<tab>'.s:mapleadstring.'en	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'et	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'es	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'ej	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'eT	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eS	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eJ	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Dialect:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'ed	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.RareWord:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'er	'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Load\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ec		'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.End\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ee		'
-    exe 'unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Help<tab>\ '
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Alternative\ spellings<tab>'.s:mapleadstring.'ea		'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ next\ spelling\ error<tab>'.s:mapleadstring.'en	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Move\ to\ previous\ spelling\ error<tab>'.s:mapleadstring.'ep	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'et	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'es	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Save\ word\ to\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'ej	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (temporarily)<tab>'.s:mapleadstring.'eT	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ user\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eS	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Remove\ word\ from\ proj\ dictionary\ (permanently)<tab>'.s:mapleadstring.'eJ	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Dialect:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'ed	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.RareWord:\ toggle\ Warning/Error\ highlighting<tab>'.s:mapleadstring.'er	'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Load\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ec		'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.End\ '.b:Spchklang.'spchk<tab>'.s:mapleadstring.'ee		'
+    exe 'silent! unmenu '.b:DrChipTopLvlMenu.b:Spchklang.'spchk.Help<tab>\ '
 	call s:AltLangMenus(1)
+"    call Decho("uninstalled menu items: spchk.Save, Remove, Dialect, Load, End, etc")
+"    call Decho("installed menu item: Load Spelling Checker")
    endif
 
    " enable subsequent re-loading of engspchk
