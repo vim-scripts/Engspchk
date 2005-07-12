@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Feb 14, 2005
-" Version:     61
+" Last Change: Jul 12, 2005
+" Version:     62
 " License:     GPL (Gnu Public License)
 "
 " GetLatestVimScripts: :AutoInstall: 195 1 engspchk.vim
@@ -108,6 +108,8 @@
 "    Yiddish   : http://www.cs.uky.edu/~raphael/yiddish/vim.tar.gz
 
 "------------------------------------------------------------------------------
+let s:keepcpo= &cpo
+set cpo&vim
 
 " Determining current language (based on name of this file) {{{2
 "                    -or- if it previously exists
@@ -150,13 +152,14 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
- let s:spchkversion             = "v61"
+ let s:spchkversion             = "v62"
  let s:loaded_{b:spchkfile}spchk= s:spchkversion
  let s:engspchk_loadcnt         =  0
 
- " ---------------------------------------------------------------------
+ " ===========================
  " Pre-Loading Interface: {{{1
- "       \ec invokes <Plug>LoadSpchk which invokes <SID>LoadSpchk()
+ " ===========================
+ "       \ec invokes <Plug>LoadSpchk which invokes <SID>LoadSpchk() {{{2
  if !hasmapto('<Plug>LoadSpchk')
   nmap <unique> <Leader>ec <Plug>LoadSpchk
  endif
@@ -169,7 +172,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
  vmap <silent> <script> <Plug>Spchkev    :<c-u>call <SID>SpchkVisBlock(0)<CR>
 
 " ---------------------------------------------------------------------
- " LoadSpchk: set up and actually load <engspchk.vim>
+ " LoadSpchk: set up and actually load <engspchk.vim> {{{2
  silent! fun! <SID>LoadSpchk()
 "   call Dfunc("LoadSpchk()")
    " prevent unnecessary re-loading of engspchk
@@ -268,11 +271,15 @@ if !exists("s:loaded_".s:spchkfile."spchk")
      if !isdirectory(g:cvimsyn)
       echoerr 'Unable to find dictionaries (see :help cvimsyn)'
       call inputsave()|call input("Press <cr> to continue")|call inputrestore()
+	  let &cpo= s:keepcpo
+	  unlet s:keepcpo
       finish
      endif
      if glob(g:cvimsyn."/*spchk.dict") == ""
       echoerr 'Dictionaries are missing from <'.g:cvimsyn.'> -- please check path!'
       call inputsave()|call input("Press <cr> to continue")|call inputrestore()
+	  let &cpo= s:keepcpo
+	  unlet s:keepcpo
       finish
      endif
     endif
@@ -319,7 +326,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
   endfun
 
   " ---------------------------------------------------------------------
-  " SpchkAltLang: initial loading of an alternate dictionary
+  " SpchkAltLang: initial loading of an alternate dictionary {{{2
   fun! s:SpchkAltLang(lang)
 "  	call Dfunc("SpchkAltLang(lang<".a:lang.">")
 
@@ -331,9 +338,9 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 "	call Dret("SpchkAltLang")
   endfun
 
-  " ---------------------------------------------------------------------
 
-  " SpchkVisBlock: restrict spellchecking to a specific block selected by visual mode
+  " ---------------------------------------------------------------------
+  " SpchkVisBlock: restrict spellchecking to a specific block selected by visual mode {{{2
   fun! s:SpchkVisBlock(mode)
 "    call Dfunc("SpchkVisBlock(mode=".a:mode.")")
 
@@ -348,14 +355,28 @@ if !exists("s:loaded_".s:spchkfile."spchk")
     " enable visual-block selected spellchecking
 	" load spellchecker if not already loaded
 	call s:LoadSpchk()
-    let l1 = line("'<")
-    let l2 = line("'>")
-    let c1 = col("'<")
-    let c2 = col("'>")
-    exe 'syn match OutOfBlock "\%<'.l1.'l"'
-    exe 'syn match OutOfBlock "\%>'.l2.'l"'
-    exe 'syn match OutOfBlock "\%<'.c1.'v"'
-    exe 'syn match OutOfBlock "\%>'.c2.'v"'
+
+    " visual block only spellchecking support: {{{2
+    let l1      = line("'<")
+    let l2      = line("'>")
+    let c1      = col("'<")
+    let c2      = col("'>")
+    let vismode = visualmode()
+    if s:incluster
+     let incluster= " contained "
+     syn cluster Spell add=OutOfBlock
+    else
+     let incluster= ""
+    endif
+    exe 'syn match OutOfBlock '.incluster.'"\%<'.l1.'l"'
+    exe 'syn match OutOfBlock '.incluster.'"\%>'.l2.'l"'
+    if vismode == "\<c-v>"
+     exe 'syn match OutOfBlock '.incluster.'"\%<'.c1.'v"'
+     exe 'syn match OutOfBlock '.incluster.'"\%>'.c2.'v"'
+"     call Decho("OutOfBlock: (visual-block) lines[".l1.",".l2."] col[".c1.",".c2."]")
+    else
+"     call Decho("OutOfBlock: (visual only) lines[".l1.",".l2."]")
+    endif
 
 "    call Dret("SpchkVisBlock")
   endfun
@@ -374,6 +395,8 @@ if !exists("s:loaded_".s:spchkfile."spchk")
  endif
 " call Decho("---- END INITIAL PRE-LOADING OF ENGSPCHK ----")
 
+ let &cpo= s:keepcpo
+ unlet s:keepcpo
  finish  " end pre-load
 endif
 
@@ -494,6 +517,8 @@ endif
 if !exists("syntax_on")
  if !has("syntax")
   echomsg "Your version of vim doesn't have syntax highlighting support"
+  let &cpo= s:keepcpo
+  unlet s:keepcpo
   finish
  endif
  echomsg "Enabling syntax highlighting"
@@ -556,7 +581,11 @@ fun! s:SpchkHighlight()
   endif
 endfun
 call <SID>SpchkHighlight()
-au CursorHold,FocusGained	*	silent call <SID>SpchkHighlight()
+if v:version < 700
+ au CursorHold,FocusGained	*	silent call <SID>SpchkHighlight()
+else
+ au ColorScheme,FocusGained	*	silent call <SID>SpchkHighlight()
+endif
 
 " ---------------------------------------------------------------------
 
@@ -754,6 +783,8 @@ if b:cvimsyn == ""
 " call Decho('Please set either g:cvimsyn (vim) or $CVIMSYN (environment)')
  echoerr 'Please set either g:cvimsyn or the CVIMSYN environment variable (:help cvimsyn)'
  call inputsave()|call input("Press <cr> to continue")|call inputrestore()
+ let &cpo= s:keepcpo
+ unlet s:keepcpo
  finish
 endif
 
@@ -801,111 +832,14 @@ if !filereadable(b:cvimsyn."/".b:spchklang."spchk.dict")
 "  call Decho("Unable to find ".b:spchklang."spchk.dict dictionary (:help cvimsyn)")
   echoerr "Unable to find ".b:spchklang."spchk.dict dictionary (try :help cvimsyn)"
   call inputsave()|call input("Press <cr> to continue")|call inputrestore()
+  let &cpo= s:keepcpo
+  unlet s:keepcpo
   finish
  endif
 endif
 "call Decho("final b:cvimsyn<".b:cvimsyn.">")
 
 " ---------------------------------------------------------------------
-
-" Detect whether BadWords should be detected/highlighted inside comments. {{{2
-" This can be done only for those syntax files' comment blocks that
-" contains=@cluster.  The code below adds GoodWord and BadWord to various
-" clusters.  If your favorite syntax comments are not included, send a note
-if exists("b:spchk_incluster")
- let s:incluster= b:spchk_incluster
-else
- let s:incluster= 0
- if     &ft == "amiga"
-" " call Decho("amiga: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incluster=1
- elseif &ft == "bib"
-" " call Decho("bib: GoodWord, BadWord added to Spell cluster")
-  syn cluster bibVarContents     	contains=GoodWord,BadWord
-  syn cluster bibCommentContents 	contains=GoodWord,BadWord
-  let s:incluster=1
- elseif &ft == "c" || &ft == "cpp"
-" " call Decho("c: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incluster=1
- elseif &ft == "csh"
-" "  call Decho("csh: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incluster=1
- elseif &ft == "dcl"
-" " call Decho("dcl: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell		add=GoodWord,BadWord
-  let s:incluster=1
- elseif &ft == "fortran"
-" " call Decho("fortran: GoodWord, BadWord added to Spell cluster")
-  syn cluster fortranCommentGroup	add=GoodWord,BadWord
-  syn match   fortranGoodWord contained	"^[Cc]\>"
-  syn cluster fortranCommentGroup	add=fortranGoodWord
-  hi link fortranGoodWord fortranComment
-  let s:incluster=1
- elseif &ft == "html"
-" " call Decho("html: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell			add=GoodWord,BadWord
-  let s:incluster=2
- elseif &ft == "mail"
-" " call Decho("mail: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell			add=GoodWord,BadWord
-  let s:incluster=2
- elseif &ft == "sh"
-" " call Decho("sh: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell			add=GoodWord,BadWord
-  let s:incluster=1
- elseif &ft == "tex"
-" " call Decho("tex: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell			add=GoodWord,BadWord
-  syn cluster texMatchGroup	add=GoodWord,BadWord
-  let s:incluster=2
- elseif &ft == "vim"
-" " call Decho("vim: GoodWord, BadWord added to Spell cluster")
-  syn cluster Spell			add=GoodWord,BadWord
-  let s:incluster=1
- endif
-endif
-"call Decho("s:incluster=".s:incluster." ft=".&ft)
-
-" attempt to infer spellcheck use - is the Spell cluster included somewhere?
-if s:incluster == 0
- fun! <SID>ChkForCluster(cname)
-"  call Dfunc("ChkForCluster(cname<".a:cname.">)")
-  let keep_rega= @a
-  redir @a
-  exe "syn list @".a:cname
-  redir END
-  if match(@a,"E392") != -1
-   let has_cluster= 0
-  elseif match(@a,"No Syntax items defined") != -1
-   let has_cluster= 0
-  else
-   let has_cluster= 1
-  endif
-  let @a= keep_rega
-"  call Dret("ChkForCluster has_cluster<".a:cname.">=".has_cluster)
-  return has_cluster
- endfun
-
- silent! let has_cluster= s:ChkForCluster("Spell")
- if has_cluster
-"  call Decho("inferred @Spell: add GoodWord,BadWord to Spell cluster; setting s:incluster=".s:incluster)
-  syn cluster Spell				add=GoodWord,BadWord
-  let s:incluster=1
- else
-  " @Spell cluster not used since the syntax writer didn't use @Spell.
-"  " call Decho(&ft." doesn't have @Spell.  Using containedin...")
-  echomsg "***warning*** syntax <".&ft."> doesn't support spell-checking"
- endif
- silent! has_cluster= ChkForCluster("texMatchGroup")
- if has_cluster
-  syn cluster texMatchGroup		add=GoodWord,BadWord
- endif
- unlet has_cluster
- delfun <SID>ChkForCluster
-endif
 
 " ========================
 " Loading The Dictionaries {{{1
@@ -978,9 +912,118 @@ fun! s:SpchkLoadDictionary(reqd,lang,dict)
 endfun
 
 " ---------------------------------------------------------------------
+" SpchkInCluster: {{{2
+fun! s:SpchkInCluster()
+"  call Dfunc("SpchkInCluster()")
+
+  " Detect whether BadWords should be detected/highlighted inside comments.
+  " This can be done only for those syntax files' comment blocks that
+  " contains=@cluster.  The code below adds GoodWord and BadWord to various
+  " clusters.  If your favorite syntax comments are not included, send a note
+  if exists("b:spchk_incluster")
+   let s:incluster= b:spchk_incluster
+  else
+   let s:incluster= 0
+   if     &ft == "amiga"
+"   " call Decho("amiga: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell		add=GoodWord,BadWord
+    let s:incluster=1
+   elseif &ft == "bib"
+"   " call Decho("bib: GoodWord, BadWord added to Spell cluster")
+    syn cluster bibVarContents     	contains=GoodWord,BadWord
+    syn cluster bibCommentContents 	contains=GoodWord,BadWord
+    let s:incluster=1
+   elseif &ft == "c" || &ft == "cpp"
+"   " call Decho("c: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell		add=GoodWord,BadWord
+    let s:incluster=1
+   elseif &ft == "csh"
+"   "  call Decho("csh: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell		add=GoodWord,BadWord
+    let s:incluster=1
+   elseif &ft == "dcl"
+"   " call Decho("dcl: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell		add=GoodWord,BadWord
+    let s:incluster=1
+   elseif &ft == "fortran"
+"   " call Decho("fortran: GoodWord, BadWord added to Spell cluster")
+    syn cluster fortranCommentGroup	add=GoodWord,BadWord
+    syn match   fortranGoodWord contained	"^[Cc]\>"
+    syn cluster fortranCommentGroup	add=fortranGoodWord
+    hi link fortranGoodWord fortranComment
+    let s:incluster=1
+   elseif &ft == "html"
+"   " call Decho("html: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell			add=GoodWord,BadWord
+    let s:incluster=2
+   elseif &ft == "mail"
+"   " call Decho("mail: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell			add=GoodWord,BadWord
+    let s:incluster=2
+   elseif &ft == "sh"
+"   " call Decho("sh: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell			add=GoodWord,BadWord
+    let s:incluster=1
+   elseif &ft == "tex"
+"   " call Decho("tex: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell			add=GoodWord,BadWord
+    syn cluster texMatchGroup	add=GoodWord,BadWord
+    let s:incluster=2
+   elseif &ft == "vim"
+"   " call Decho("vim: GoodWord, BadWord added to Spell cluster")
+    syn cluster Spell			add=GoodWord,BadWord
+    let s:incluster=1
+   endif
+  endif
+"  call Decho("s:incluster=".s:incluster." ft=".&ft)
+  
+  " attempt to infer spellcheck use - is the Spell cluster included somewhere?
+  if s:incluster == 0
+   fun! <SID>ChkForCluster(cname)
+"    call Dfunc("ChkForCluster(cname<".a:cname.">)")
+    let keep_rega= @a
+    redir @a
+    exe "syn list @".a:cname
+    redir END
+    if match(@a,"E392") != -1
+     let has_cluster= 0
+    elseif match(@a,"No Syntax items defined") != -1
+     let has_cluster= 0
+    else
+     let has_cluster= 1
+    endif
+    let @a= keep_rega
+"    call Dret("ChkForCluster has_cluster<".a:cname.">=".has_cluster)
+    return has_cluster
+   endfun
+  
+   silent! let has_cluster= s:ChkForCluster("Spell")
+   if has_cluster
+"    call Decho("inferred @Spell: add GoodWord,BadWord to Spell cluster; setting s:incluster=".s:incluster)
+    syn cluster Spell				add=GoodWord,BadWord
+    let s:incluster=1
+   else
+    " @Spell cluster not used since the syntax writer didn't use @Spell.
+"    " call Decho(&ft." doesn't have @Spell.  Using containedin...")
+    echomsg "***warning*** syntax <".&ft."> doesn't support spell-checking"
+   endif
+   silent! has_cluster= ChkForCluster("texMatchGroup")
+   if has_cluster
+    syn cluster texMatchGroup		add=GoodWord,BadWord
+   endif
+   unlet has_cluster
+   delfun <SID>ChkForCluster
+  endif
+
+"  call Dret("SpchkInCluster")
+endfun
+
+" ---------------------------------------------------------------------
 
 " Load dictionaries {{{2
 "  in reverse order of priority
+"call Decho("load dictionaries in reverse priority order")
+call s:SpchkInCluster()
 call s:SpchkLoadDictionary(0,b:spchklang,"proper")
 call s:SpchkLoadDictionary(0,b:spchklang,"rare")
 call s:SpchkLoadDictionary(0,b:spchklang,"dialect")
@@ -1003,18 +1046,18 @@ syn case match
 if s:incluster == 0 || s:incluster == 2 || b:spchknonhl
 " call Decho("s:incluster=".s:incluster.": BadWords match outside syntax")
  if b:spchklang == "eng"
-  syn match BadWord	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect,OutOfBlock
+  syn match BadWord	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=OutOfBlock,RareWord,Dialect
  else
-  syn match BadWord	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect,OutOfBlock
+  syn match BadWord	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=OutOfBlock,RareWord,Dialect
  endif
 endif
 if s:incluster == 1 || s:incluster == 2
 " call Decho("s:incluster=".s:incluster.": BadWords match inside syntax with @Spell (contained)")
  if b:spchklang == "eng"
-  syn match BadWord contained	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=RareWord,Dialect,OutOfBlock
+  syn match BadWord contained	"\<[^[:punct:][:space:][:digit:]]\{2,}\>"	 contains=OutOfBlock,RareWord,Dialect
   syn cluster Spell add=Dialect,RareWord
  else
-  syn match BadWord contained	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=RareWord,Dialect,OutOfBlock
+  syn match BadWord contained	"\<[^[!@#$%^&*()_+=[\]{};:",<>./?\\|[:space:][:digit:]]\{2,}\>" contains=OutOfBlock,RareWord,Dialect
  endif
 endif
 
@@ -1040,6 +1083,7 @@ syn match GoodWord transparent	"\\n"
 call s:SpchkLoadDictionary(0,b:spchklang,"contraction")
 call s:SpchkLoadDictionary(0,b:spchklang,"match")
 
+
 " Acronymns {{{2
 if b:spchkacronym
  " Pan Shizhu suggested that two or more capitalized letters
@@ -1058,7 +1102,6 @@ hi link BadWord Error
 " ==================================================
 " Support Functions: {{{1
 " ==================================================
-
 " SpchkSave: {{{2
 fun! <SID>SpchkSave(newword,dict)
 "  call Dfunc("SpchkSave(newword<".a:newword.">,dict<".a:dict.">)")
@@ -1088,7 +1131,6 @@ fun! <SID>SpchkSave(newword,dict)
 endfun
 
 " ---------------------------------------------------------------------
-
 " SpchkRemove: implements \eS : depends on SpchkSave's putting one {{{2
 "              user word per line in <*spchk.usr>.  This function
 "              actually will delete the entire line containing the
@@ -1816,4 +1858,7 @@ if !b:spchksilent
  echo "Done Loading <".b:spchklang."spchk.vim>"
 endif
 
+let &cpo= s:keepcpo
+unlet s:keepcpo
+" ---------------------------------------------------------------------
 " vim: ts=4 fdm=marker

@@ -1,4 +1,4 @@
-*engspchk.txt*	English Spelling Checker   (v61)	Mar 14, 2005
+*engspchk.txt*	English Spelling Checker   (v61)	Jul 12, 2005
 
 Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	(elide NOSPAM from my email before using)
@@ -570,6 +570,8 @@ Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 ==============================================================================
 4. History						*engspchk-history*
 
+	62    : Jul 12, 2005  * cpo workaround
+	                      * visual-block only spellchecking support
 	61    : Feb 14, 2005  * A check is now made for +clipboard before
 				attempting to clear it.
 	60    : Jan 07, 2005  * made a special-case for html to have spell
