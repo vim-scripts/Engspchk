@@ -1,111 +1,20 @@
 " engspchk.vim: Vim syntax file
-" Language:    English
+" Language:    depends on what dictionaries you have; comes with English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Last Change: Jul 12, 2005
-" Version:     62
-" License:     GPL (Gnu Public License)
+" Date:        Feb 15, 2006
+" Version:     63
+" Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
+"               Permission is hereby granted to use and distribute this code,
+"               with or without modifications, provided that this copyright
+"               notice is copied with it. Like anything else that's free,
+"               engspchk.vim is provided *as is* and comes with no warranty
+"               of any kind, either expressed or implied. By using this
+"               plugin, you agree that in no event will the copyright
+"               holder be liable for any damages resulting from the use
+"               of this software.
 "
 " GetLatestVimScripts: :AutoInstall: 195 1 engspchk.vim
-" Help: {{{1
-" Environment Variables: {{{2
-"
-"  $CVIMSYN         : points to a directory holding the engspchk dictionaries
-"                     ie., <engspchk.dict>, <engspchk.usr>, <engspchk.rare>
-"
-"  g:cvimsyn        : Vim variable, settable in your <.vimrc>, that points to
-"                     a directory holding the user word database.
-"
-"  g:spchklang      : override name-of-file prefix with desired language
-"                     prefix/filename (ie. gerspchk.vim ger frspchk.vim fr etc)
-"
-"  g:spchkautonext  : if this variable exists, then \es and \et will also
-"                     automatically jump to the next spelling error (\en).
-"                     \ea, if a word is selected, will also do a \en.
-"
-"  g:spchkdialect   : pick a dialect (no effect if spchklang not "eng")
-"                     = "usa" : pick United States dialect
-"                     = "uk"  : pick United Kingdom dialect
-"                     = "can" : pick Canadian dialect
-"
-"  g:spchknonhl     : apply engspchk'ing to all non-syntax-highlighted text
-"                     (done if variable exists)
-"
-"  g:spchkpunc =0   : default, no new behavior
-"              =1   : check for some simple English punctuation problems
-"                     non-capitalized word after ellipse (... a)
-"                     non-capitalized word after sentence ending character
-"                     ([.?!])
-"  g:spchksilent= 0 : default
-"               = 1 : usual Sourcing... and Loading messages suppressed
-"
-"  If you make a Dialect highlighting group, it will be used instead
-"
-" Finding Dictionaries: {{{2
-"      If        g:cvimsyn exists, it is tried
-"      Otherwise $CVIMSYN is tried
-"      Otherwise each path on the runtimepath is tried
-"      Otherwise quit with an error message
-"
-"      "Trying" involves checking if the spelling dictionary is
-"      filereadable(); if not, then if filereadable(expand())
-"      works.  If a combination works, that path is set into
-"      g:cvimsyn.
-"
-"      Note that the "eng" prefix can be changed via setting
-"      g:spchklang or renaming <engspchk.vim>.  Then engspchk
-"      will load:  (elide the [])
-"
-"         [eng]spchk.dict  Main word dictionary
-"         [eng]spchk.usr   User's personal word dictionary
-"         [eng]spchk.rare  English only -- Webster's 1913 dictionary extra words
-"                          and unusual words culled from previous
-"                          <engspchk.dict> wordlists.
-"
-" Included Maps:  maps use <mapleader>, which by default is \ {{{2
-"  \ec : load engspchk
-"  \et : add  word under cursor into database (temporarily - ie. just this file)
-"  \es : save word under cursor into usr  database (permanently)
-"  \ej : save word under cursor into proj database (permanently)
-"  \en : move cursor to the next     spelling error
-"  \ep : move cursor to the previous spelling error
-"  \ea : look for alternative spellings of word under cursor
-"  \ed : toggle Dialect highlighting (Warning/Error)
-"  \ee : end engspchk
-"  \eT : make word under cursor a BadWord (temporarily, opposite of \et)
-"  \eS : make word under cursor a BadWord (permanently, opposite of \es)
-"        and removes the word from the user dictionary
-"  \eJ : remove word under cursor from project dictionary (permanently)
-"
-" Maps for Alternatives Window Only:
-"  <cr> : on alternatives line, will put word under cursor in
-"         searchword's stead
-"  <tab>: like <cr>, but does a global substitute changing all such
-"         mispelled words to the selected alternate word.
-"  q    : will quit the alternate-word window
-"  :q   : will quit the alternate-word window
-"
-" Usage: {{{2
-"  Simply source the file in.  It does *not* do a "syntax clear", so that means
-"  that you can usually just source it in on top of other highlighting.
-"  NOTE: not all alphas of 6.0 support plugins, <silent>, etc.
-"        engspchk can't check for them; all their versions are 600.
-"        Besides, 6.1 is out nowadays.
-"
-" Non English Languages: {{{2
-"  There are versions of this script for languages other than English.
-"  I've tried to make this script work for non-English languages by
-"
-"    (a) allowing one to rename the script with a different prefix
-"    (b) using that prefix to load the non-English language dictionary
-"
-"  If you come up with a version for another language, please let me
-"  know where on the web it is so that I can help make it known.
-"
-"    Dutch     : http://www.thomer.com/thomer/vi/nlspchk.vim.gz
-"    German    : http://jeanluc-picard.de/vim/gerspchk/gerspchk.vim.gz
-"    Hungarian : http://vim.sourceforge.net/scripts/script.php?script_id=22
-"    Polish    : http://strony.wp.pl/wp/kostoo/download.htm#vim
-"    Yiddish   : http://www.cs.uky.edu/~raphael/yiddish/vim.tar.gz
+" GetLatestVimScripts: 1066 1 cecutil.vim
 
 "------------------------------------------------------------------------------
 let s:keepcpo= &cpo
@@ -152,7 +61,7 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
- let s:spchkversion             = "v62"
+ let s:spchkversion             = "v63"
  let s:loaded_{b:spchkfile}spchk= s:spchkversion
  let s:engspchk_loadcnt         =  0
 
@@ -174,7 +83,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 " ---------------------------------------------------------------------
  " LoadSpchk: set up and actually load <engspchk.vim> {{{2
  silent! fun! <SID>LoadSpchk()
-"   call Dfunc("LoadSpchk()")
+"   call Dfunc("LoadSpchk() vim_version=".v:version)
    " prevent unnecessary re-loading of engspchk
    if exists("b:engspchk_loaded")
 "   	call Dret("LoadSpchk : preventing unnecessary re-load of engspchk (b:engspchk_loaded=".b:engspchk_loaded.")")
@@ -297,7 +206,7 @@ if !exists("s:loaded_".s:spchkfile."spchk")
 
   	if a:domenu >= 1
 	 call s:SpchkSetCvimsyn()
-	 let b:cvimsyn= g:cvimsyn
+	 let b:cvimsyn= escape(g:cvimsyn,' ')
 "	 call Decho("b:cvimsyn set to <".b:cvimsyn.">")
      if b:cvimsyn != ""
       let dictfiles= glob(b:cvimsyn."/*spchk.dict")
@@ -470,7 +379,7 @@ endfun
 let b:spchkaltright    = exists("g:spchkaltright")?    g:spchkaltright    : 0
 let b:spchkacronym     = exists("g:spchkacronym")?     g:spchkacronym     : 0
 call s:SpchkSetCvimsyn()
-let b:cvimsyn          = g:cvimsyn
+let b:cvimsyn          = escape(g:cvimsyn,' ')
 let b:DrChipTopLvlMenu = exists("g:DrChipTopLvlMenu")? g:DrChipTopLvlMenu : ""
 let b:spchkautonext    = exists("g:spchkautonext")?    g:spchkautonext    : 0
 let b:spchkdialect     = exists("g:spchkdialect")?     g:spchkdialect     : "usa"
@@ -589,55 +498,22 @@ endif
 
 " ---------------------------------------------------------------------
 
-" SaveMap: this function sets up a buffer-variable (b:spchk_restoremap) {{{2
-"          which will be used by StopDrawIt to restore user maps
-"          mapchx: either <something>  which is handled as one map item
-"                  or a string of single letters which are multiple maps
-"                  ex.  mapchx="abc" and maplead='\': \a \b and \c are saved
-fun! <SID>SaveMap(mapmode,maplead,mapchx)
-"  call Dfunc("SaveMap(mapmode<".a:mapmode."> maplead<".a:maplead."> mapchx<".a:mapchx.">)")
-"  call Decho("in savemap: bufnr#".bufnr("%")." name<".bufname("%").">")
-"  call Decho("is single map? strpart(mapchx<".a:mapchx.">,0,1) == ".strpart(a:mapchx,0,1))
-  if strpart(a:mapchx,0,1) == '<'
-   " save single map <something>
-   if maparg(a:mapchx,a:mapmode) != ""
-"     call Decho("saving single map ".a:mapchx)
-     let b:spchk_restoremap= a:mapmode."map ".a:mapchx." ".maparg(a:mapchx,a:mapmode)."|".b:spchk_restoremap
-     exe a:mapmode."unmap ".a:mapchx
-    endif
-  else
-   " save multiple maps
-   let i= 1
-   while i <= strlen(a:mapchx)
-    let amap=a:maplead.strpart(a:mapchx,i-1,1)
-"	call Decho("multimaps: maparg(amap<".amap.">,mapmode<".a:mapmode.">)=".maparg(amap,a:mapmode))
-    if maparg(amap,a:mapmode) != ""
-"     call Decho("saving multiple maps: <".amap.">")
-     let b:spchk_restoremap= a:mapmode."map ".amap." ".maparg(amap,a:mapmode)."|".b:spchk_restoremap
-     exe a:mapmode."unmap ".amap
-    endif
-    let i= i + 1
-   endwhile
-  endif
-"  call Dret("SaveMap")
-endfunction
-
-" ---------------------------------------------------------------------
 "  User Interface: {{{1
-let b:spchk_restoremap= ""
 "call Decho("starting savemap: bufnr#".bufnr("%")." name<".bufname("%").">")
-call <SID>SaveMap("n",s:usermaplead.'e',"a")
-call <SID>SaveMap("n",s:usermaplead.'e',"d")
-call <SID>SaveMap("n",s:usermaplead.'e',"e")
-call <SID>SaveMap("n",s:usermaplead.'e',"j")
-call <SID>SaveMap("n",s:usermaplead.'e',"J")
-call <SID>SaveMap("n",s:usermaplead.'e',"n")
-call <SID>SaveMap("n",s:usermaplead.'e',"p")
-call <SID>SaveMap("n",s:usermaplead.'e',"t")
-call <SID>SaveMap("n",s:usermaplead.'e',"T")
-call <SID>SaveMap("n",s:usermaplead.'e',"s")
-call <SID>SaveMap("n",s:usermaplead.'e',"S")
-call <SID>SaveMap("v",s:usermaplead.'e',"V")
+call SaveUserMaps("un",s:usermaplead.'e',"a","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"d","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"e","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"j","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"J","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"n","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"p","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"r","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"t","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"T","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"s","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"S","spchk")
+call SaveUserMaps("un",s:usermaplead.'e',"V","spchk")
+call SaveUserMaps("uv",s:usermaplead.'e',"V","spchk")
 
 " Maps to facilitate entry of new words {{{2
 "  use  temporarily (\et)   remove temporarily (\eT)
@@ -712,9 +588,9 @@ if b:spchkmouse > 0
   " insure that the mouse will work with Click-N-Fix
   set mouse+=n
  endif
- call <SID>SaveMap("n","","<leftmouse>")
- call <SID>SaveMap("n","","<middlemouse>")
- call <SID>SaveMap("n","","<rightmouse>")
+ call SaveUserMaps("un","","<leftmouse>","spchk")
+ call SaveUserMaps("un","","<middlemouse>","spchk")
+ call SaveUserMaps("un","","<rightmouse>","spchk")
  nnoremap <silent> <leftmouse>    <leftmouse>:call <SID>SpchkMouse(0)<CR>
  nnoremap <silent> <middlemouse>  <leftmouse>:call <SID>SpchkMouse(1)<CR>
  nnoremap <silent> <rightmouse>   <leftmouse>:call <SID>SpchkRightMouse()<CR>
@@ -791,7 +667,7 @@ endif
 "call Decho("attempt to find dictionaries: spchklang<".b:spchklang.">")
 "call Decho("trying <".b:cvimsyn."/".b:spchklang."spchk.dict>")
 if !filereadable(b:cvimsyn."/".b:spchklang."spchk.dict")
- let b:cvimsyn= expand(b:cvimsyn)
+ let b:cvimsyn= escape(expand(b:cvimsyn),' ')
 
 " call Decho("trying <".b:cvimsyn."/".b:spchklang."spchk.dict>")
  if !filereadable(b:cvimsyn."/".b:spchklang."spchk.dict")
@@ -800,7 +676,7 @@ if !filereadable(b:cvimsyn."/".b:spchklang."spchk.dict")
   " search runtimepath
   while rtp != ""
    " get leftmost path from rtp
-   let b:cvimsyn= substitute(rtp,',.*$','','')."/CVIMSYN"
+   let b:cvimsyn= escape(substitute(rtp,',.*$','','')."/CVIMSYN",' ')
 "   call Decho("setting b:cvimsyn<".b:cvimsyn.">")
 
    " remove leftmost path from rtp
@@ -816,7 +692,7 @@ if !filereadable(b:cvimsyn."/".b:spchklang."spchk.dict")
     break
    else
     " attempt to expand and see if dictionary is readable then
-    let b:cvimsyn= expand(b:cvimsyn)
+    let b:cvimsyn= escape(expand(b:cvimsyn),' ')
 "    call Decho("trying <".b:cvimsyn."/".b:spchklang."spchk.dict>")
     if filereadable(b:cvimsyn."/".b:spchklang."spchk.dict")
      break
@@ -864,7 +740,7 @@ endif
 "         the dictionary file itself may override this with a
 "         leading "syn case match".
 fun! s:SpchkLoadDictionary(reqd,lang,dict)
-"  call Dfunc("SpchkLoadDictionary(reqd=".a:reqd." lang<".a:lang."> dict<".a:dict.">)")
+"  call Dfunc("SpchkLoadDictionary(reqd=".a:reqd." lang<".a:lang."> dict<".a:dict.">) b:cvimsyn<".b:cvimsyn.">")
 "  let loadtime= localtime()		" Decho
 
   " set up short and long names
@@ -890,6 +766,7 @@ fun! s:SpchkLoadDictionary(reqd,lang,dict)
    else
     com! -nargs=+ GoodWord syn keyword GoodWord transparent <args>
    endif
+"   call Decho("so fullname<".fullname.">")
    exe "so ".fullname
    delcommand GoodWord
    if a:reqd == 1
@@ -1005,7 +882,9 @@ fun! s:SpchkInCluster()
    else
     " @Spell cluster not used since the syntax writer didn't use @Spell.
 "    " call Decho(&ft." doesn't have @Spell.  Using containedin...")
-    echomsg "***warning*** syntax <".&ft."> doesn't support spell-checking"
+    if &ft != ""
+     echomsg "***warning*** syntax <".&ft."> doesn't support spell-checking"
+	endif
    endif
    silent! has_cluster= ChkForCluster("texMatchGroup")
    if has_cluster
@@ -1512,7 +1391,7 @@ fun! <SID>SpchkAlternate(wrd)
    exe "silent r! agrep -1 -w ".agrep_opt."\"".a:wrd."\" \"".wordlist."\""
   endif
   if spchkaltright > 0
-   3
+   silent! 3
   else
    silent %j
    silent norm! 04w
@@ -1782,11 +1661,7 @@ fun! <SID>SpchkEnd()
 
    " restore user map(s), if any
 "   call Decho("restoration: bufnr#".bufnr("%")." bufname<".bufname("%").">")
-   if exists("b:spchk_restoremap") && b:spchk_restoremap != ""
-"   	call Decho("restoring user maps, if any")
-    exe b:spchk_restoremap
-    silent! unlet b:spchk_restoremap
-   endif
+   call RestoreUserMaps("spchk")
 
    " remove menu entries
    if has("gui_running") && has("menu") && &go =~ 'm'
