@@ -1,4 +1,4 @@
-*engspchk.txt*	English Spelling Checker			Jan 18, 2006
+*engspchk.txt*	English Spelling Checker			Feb 21, 2006
 
 Author:  Charles E. Campbell, Jr.  <NdrOchip@ScampbellPfamilyA.bizM>
 	(elide NOSPAM from my email before using)
@@ -178,18 +178,18 @@ Copyright: (c) 2004-2006 by Charles E. Campbell, Jr.	*engspchk-copyright*
 	    should set g:cvimsyn (or use the CVIMSYN environment variable).
 
 	    For example, under a Windows operating system, one might
-	    have in one's <.vimrc> file:
-
+	    have in one's <.vimrc> file: >
 		let g:cvimsyn= 'c:\vim\vimfiles\CVIMSYN'
-	    or
+<	    or >
 		let g:cvimsyn= 'c:\vim\vimfiles\plugin\CVIMSYN'
+<	    Note the use of single quotes!  If you use double-quotes,
+	    ie. '"', you'll also need to double up the backslashes.
 
-	    Under Unix/Linux, one might have
-
+	    Under Unix/Linux, one might have >
 		let g:cvimsyn= expand('${HOME}/.vim/CVIMSYN')
-	    or
+<	    or >
 		let g:cvimsyn= expand('${HOME}/.vim/plugin/CVIMSYN')
-
+<
 	CVIMSYN   : (a system environment variable) points to a directory
 	    holding the dictionary and the user word database <engspchk.usr>.
 	    The optional file <engspchk.wb>, which contains words from
@@ -574,6 +574,9 @@ Copyright: (c) 2004-2006 by Charles E. Campbell, Jr.	*engspchk-copyright*
 ==============================================================================
 4. History						*engspchk-history*
 
+	64    : Mar 03, 2006  * when filetype is mail, spell checking no
+	                        longer takes place in initial lines
+	        Mar 07, 2006  * noremap setting now elicits a warning
 	63    : Oct 24, 2005  * now includes CVIMSYN/engspchk.match
 	        Dec 28, 2005  * now uses cecutil to save/restore user maps
 		Jan 03, 2006  * CVIMSYN now handles spaces in path

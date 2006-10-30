@@ -1,8 +1,8 @@
 " engspchk.vim: Vim syntax file
 " Language:    depends on what dictionaries you have; comes with English
 " Author:      Dr. Charles E. Campbell, Jr. <NdrOchip@ScampbellPfamilyA.Mbiz> - NOSPAM
-" Date:        Feb 15, 2006
-" Version:     63
+" Date:        Oct 30, 2006
+" Version:     64
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -61,7 +61,7 @@ let s:mapleadstring= escape(s:usermaplead,'\ ')
 " Quick load:
 if !exists("s:loaded_".s:spchkfile."spchk")
 " call Decho("Quick load: s:loaded_".s:spchkfile."spchk doesn't exist yet")
- let s:spchkversion             = "v63"
+ let s:spchkversion             = "v64"
  let s:loaded_{b:spchkfile}spchk= s:spchkversion
  let s:engspchk_loadcnt         =  0
 
@@ -79,6 +79,10 @@ if !exists("s:loaded_".s:spchkfile."spchk")
   vmap <unique> <Leader>ev <Plug>Spchkev
  endif
  vmap <silent> <script> <Plug>Spchkev    :<c-u>call <SID>SpchkVisBlock(0)<CR>
+
+ if &remap == 0
+  echohl WarningMsg | echoerr '***warning*** your "noremap" setting prevents the engspchk plugin from working' | echohl None
+ endif
 
 " ---------------------------------------------------------------------
  " LoadSpchk: set up and actually load <engspchk.vim> {{{2
@@ -837,6 +841,7 @@ fun! s:SpchkInCluster()
 "   " call Decho("mail: GoodWord, BadWord added to Spell cluster")
     syn cluster Spell			add=GoodWord,BadWord
     let s:incluster=2
+	exe "syn match GoodWord '/\%<".search('^$','nW')."l/'
    elseif &ft == "sh"
 "   " call Decho("sh: GoodWord, BadWord added to Spell cluster")
     syn cluster Spell			add=GoodWord,BadWord
@@ -991,7 +996,7 @@ fun! <SID>SpchkSave(newword,dict)
    exe "silent e ".b:spchklang."spchk.".a:dict
   endif
   $put='GoodWord	'.a:newword
-  let un= bufnr(".")
+  let un= bufnr("%")
   silent wq
   if bufexists(un)
    exe "silent bw ".un

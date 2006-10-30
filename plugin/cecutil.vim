@@ -2,8 +2,8 @@
 "               save/restore mark position
 "               save/restore selected user maps
 "  Author:	Charles E. Campbell, Jr.
-"  Version:	15b	ASTRO-ONLY
-"  Date:	Jan 25, 2006
+"  Version:	16a	NOT RELEASED
+"  Date:	Oct 30, 2006
 "
 "  Saving Restoring Destroying Marks: {{{1
 "       call SaveMark(markname)       let savemark= SaveMark(markname)
@@ -28,7 +28,7 @@
 if &cp || exists("g:loaded_cecutil")
  finish
 endif
-let g:loaded_cecutil = "v15b"
+let g:loaded_cecutil = "v16a"
 let s:keepcpo        = &cpo
 set cpo&vim
 "DechoVarOn
@@ -48,11 +48,11 @@ nmap <silent> <Plug>SaveWinPosn		:call SaveWinPosn()<CR>
 nmap <silent> <Plug>RestoreWinPosn	:call RestoreWinPosn()<CR>
 
 " Command Interface: {{{2
-com -bar -nargs=0 SWP	call SaveWinPosn()
-com -bar -nargs=0 RWP	call RestoreWinPosn()
-com -bar -nargs=1 SM	call SaveMark(<q-args>)
-com -bar -nargs=1 RM	call RestoreMark(<q-args>)
-com -bar -nargs=1 DM	call DestroyMark(<q-args>)
+com! -bar -nargs=0 SWP	call SaveWinPosn()
+com! -bar -nargs=0 RWP	call RestoreWinPosn()
+com! -bar -nargs=1 SM	call SaveMark(<q-args>)
+com! -bar -nargs=1 RM	call RestoreMark(<q-args>)
+com! -bar -nargs=1 DM	call DestroyMark(<q-args>)
 
 if v:version < 630
  let s:modifier= "sil "
@@ -120,6 +120,8 @@ endfun
 " RestoreWinPosn: {{{1
 fun! RestoreWinPosn(...)
 "  call Dfunc("RestoreWinPosn() a:0=".a:0)
+"  call Decho("getline(1)<".getline(1).">")
+"  call Decho("line(.)=".line("."))
   if line(".") == 1 && getline(1) == ""
 "   call Dfunc("RestoreWinPosn : empty buffer")
    return ""
@@ -387,10 +389,12 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
    if amap == "|" || amap == "\<c-v>"
     let amap= "\<c-v>".amap
    endif
+   let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|:silent! ".mapmode."unmap ".amap
    if maparg(amap,mapmode) != ""
-   	let s:restoremap_{a:suffix} = mapmode."map ".amap." ".maparg(amap,mapmode)."|".s:restoremap_{a:suffix}
+    let maprhs= substitute(maparg(amap,mapmode),'|','<bar>','ge')
+"	let maprhs= substitute(maprhs,'"<CR>',"\<cr>",'ge')
+   	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|:".mapmode."map ".amap." ".maprhs
    endif
-   let s:restoremap_{a:suffix} = "silent! ".mapmode."unmap ".amap."|".s:restoremap_{a:suffix}
    if dounmap
     exe "silent! ".mapmode."unmap ".amap
    endif
@@ -401,10 +405,12 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
    if amap == "|" || amap == "\<c-v>"
     let amap= "\<c-v>".amap
    endif
+   let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|silent! ".mapmode."unmap ".amap
    if maparg(a:mapchx,mapmode) != ""
-   	let s:restoremap_{a:suffix} = mapmode."map ".amap." ".maparg(amap,mapmode)."|".s:restoremap_{a:suffix}
+    let maprhs= substitute(maparg(amap,mapmode),'|','<bar>','ge')
+"	let maprhs= substitute(maprhs,'"<CR>',"\<cr>",'ge')
+   	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|".mapmode."map ".amap." ".maprhs
    endif
-   let s:restoremap_{a:suffix} = "silent! ".mapmode."unmap ".amap."|".s:restoremap_{a:suffix}
    if dounmap
     exe "silent! ".mapmode."unmap ".amap
    endif
@@ -417,10 +423,12 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
 	if amap == "|" || amap == "\<c-v>"
 	 let amap= "\<c-v>".amap
 	endif
+    let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|silent! ".mapmode."unmap ".amap
     if maparg(amap,mapmode) != ""
-   	 let s:restoremap_{a:suffix} = mapmode."map ".amap." ".maparg(amap,mapmode)."|".s:restoremap_{a:suffix}
+     let maprhs= substitute(maparg(amap,mapmode),'|','<bar>','ge')
+"	 let maprhs= substitute(maprhs,'"<CR>',"\<cr>",'ge')
+   	 let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|".mapmode."map ".amap." ".maprhs
     endif
-    let s:restoremap_{a:suffix} = "silent! ".mapmode."unmap ".amap."|".s:restoremap_{a:suffix}
 	if dounmap
      exe "silent! ".mapmode."unmap ".amap
 	endif
@@ -436,9 +444,10 @@ endfun
 fun! RestoreUserMaps(suffix)
 "  call Dfunc("RestoreUserMaps(suffix<".a:suffix.">)")
   if exists("s:restoremap_{a:suffix}")
+   let s:restoremap_{a:suffix}= substitute(s:restoremap_{a:suffix},'|\s*$','','e')
    if s:restoremap_{a:suffix} != ""
 "   	call Decho("exe ".s:restoremap_{a:suffix})
-    exe s:restoremap_{a:suffix}
+    exe "silent! ".s:restoremap_{a:suffix}
    endif
    unlet s:restoremap_{a:suffix}
   endif
